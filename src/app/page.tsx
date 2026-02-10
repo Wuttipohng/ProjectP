@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { FlaskConical, BarChart3, FileText, Zap, Shield } from 'lucide-react';
+const GoToToolButton = dynamic(() => import('@/components/GoToToolButton'), { ssr: false });
 
 export default function HomePage() {
     const features = [
@@ -56,7 +58,8 @@ export default function HomePage() {
                             วิเคราะห์ End Point และ Export PDF ได้ในคลิกเดียว
                         </p>
 
-                        {/* CTA removed: login/register buttons intentionally hidden */}
+                        {/* Quick access to tool */}
+                        <GoToToolButton />
                     </div>
                 </div>
             </section>
