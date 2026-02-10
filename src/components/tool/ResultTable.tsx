@@ -89,6 +89,59 @@ export default function ResultTable({ result }: ResultTableProps) {
         setResult(newResult);
     };
 
+    const applyDeltaOverrides = (newDeltaPH: number[], newDeltaV: number[], newVolumes?: number[], newPH?: number[]) => {
+        const volumesArr = newVolumes ?? volumes;
+        const phArr = newPH ?? phValues;
+
+        const n = volumesArr.length;
+        const dPHdV: number[] = [];
+        const plotVolume: number[] = [];
+
+        for (let i = 0; i < n - 1; i++) {
+            const dPH = newDeltaPH[i] ?? 0;
+            const dV = newDeltaV[i] ?? 0;
+            dPHdV.push(dV !== 0 ? dPH / dV : 0);
+            plotVolume.push(volumesArr[i + 1] ?? 0);
+        }
+
+        let maxDPHdV = dPHdV[0] ?? 0;
+        let eqIndex = 0;
+        for (let i = 1; i < dPHdV.length; i++) {
+            if (dPHdV[i] > maxDPHdV) {
+                maxDPHdV = dPHdV[i];
+                eqIndex = i;
+            }
+        }
+
+        const eqVol = plotVolume[eqIndex] ?? 0;
+        const eqPH = phArr[eqIndex + 1] ?? 0;
+        const eqDPHdV = maxDPHdV;
+
+        let expType = result.expType || '';
+        if (eqPH > 8) expType = 'Strong Base + Weak Acid';
+        else if (eqPH < 6) expType = 'Strong Acid + Weak Base';
+        else expType = 'Strong Acid + Strong Base';
+
+        const newResult: TitrationResult = {
+            ...result,
+            volume: volumesArr.slice(),
+            pH: phArr.slice(),
+            deltaPH: newDeltaPH.slice(),
+            deltaV: newDeltaV.slice(),
+            dPHdV,
+            plotVolume,
+            eqIndex,
+            eqVol,
+            eqPH,
+            eqDPHdV,
+            expType,
+        };
+
+        setDeltaPH(newDeltaPH.slice());
+        setDeltaV(newDeltaV.slice());
+        setResult(newResult);
+    };
+
     const validateVolumes = (arr: number[]) => {
         for (let i = 1; i < arr.length; i++) {
             if (arr[i] < arr[i - 1]) return false;
@@ -275,8 +328,8 @@ export default function ResultTable({ result }: ResultTableProps) {
                                             const val = Number(e.target.value);
                                             const newDPH = deltaPH.slice();
                                             newDPH[i] = Number.isFinite(val) ? val : 0;
-                                            setDeltaPH(newDPH);
-                                            recomputeFromVolumes(volumes, phValues);
+                                            // Apply overrides using current deltaV
+                                            applyDeltaOverrides(newDPH, deltaV, volumes, phValues);
                                         }}
                                     />
                                 </td>
@@ -291,8 +344,8 @@ export default function ResultTable({ result }: ResultTableProps) {
                                             const val = Number(e.target.value);
                                             const newDV = deltaV.slice();
                                             newDV[i] = Number.isFinite(val) ? val : 0;
-                                            setDeltaV(newDV);
-                                            recomputeFromVolumes(volumes, phValues);
+                                            // Apply overrides using current deltaPH
+                                            applyDeltaOverrides(deltaPH, newDV, volumes, phValues);
                                         }}
                                     />
                                 </td>
