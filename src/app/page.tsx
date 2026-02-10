@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { FlaskConical, ArrowRight, BarChart3, FileText, Zap, Shield } from 'lucide-react';
-import Button from '@/components/ui/Button';
+import { FlaskConical, BarChart3, FileText, Zap, Shield } from 'lucide-react';
 
 export default function HomePage() {
     const features = [
@@ -57,20 +56,7 @@ export default function HomePage() {
                             วิเคราะห์ End Point และ Export PDF ได้ในคลิกเดียว
                         </p>
 
-                        {/* CTA Buttons */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <Link href="/register">
-                                <Button size="lg" className="group">
-                                    เริ่มใช้งานฟรี
-                                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                                </Button>
-                            </Link>
-                            <Link href="/login">
-                                <Button variant="secondary" size="lg">
-                                    เข้าสู่ระบบ
-                                </Button>
-                            </Link>
-                        </div>
+                        {/* CTA removed: login/register buttons intentionally hidden */}
                     </div>
                 </div>
             </section>
@@ -168,12 +154,7 @@ export default function HomePage() {
                     <p className="text-gray-400 mb-8">
                         สมัครฟรี ใช้งานได้ทันที ไม่มีค่าใช้จ่าย
                     </p>
-                    <Link href="/register">
-                        <Button size="lg" className="animate-pulse-glow">
-                            เริ่มใช้งานเลย
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </Link>
+                    {/* CTA removed: registration button intentionally hidden */}
                 </div>
             </section>
 
