@@ -3,7 +3,8 @@
 import { FileDown, Download } from 'lucide-react';
 import type { TitrationResult, ExperimentConfig, ChartConfig } from '@/types';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { exportPDF } from '@/core/pdfGenerator';
+// `exportPDF` uses DOM/canvas APIs and jsPDF; import dynamically to avoid
+// loading it during server-side rendering.
 import { downloadChartAsPNG } from '@/lib/exportChart';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
@@ -38,6 +39,7 @@ export default function Report({
 
         try {
             setExporting(true);
+            const { exportPDF } = await import('@/core/pdfGenerator');
             await exportPDF(
                 result,
                 config,
