@@ -10,11 +10,13 @@ import { calculateTitration } from '@/core/titration';
 import { cn } from '@/lib/utils';
 import { saveExperiment, getCurrentUser } from '@/lib/local-db';
 import DataTable from '@/components/tool/DataTable';
-import PHChart from '@/components/charts/PHChart';
-import DerivativeChart from '@/components/charts/DerivativeChart';
-import ResultTable from '@/components/tool/ResultTable';
-import Report from '@/components/tool/Report';
-import ExperimentHistory from '@/components/tool/ExperimentHistory';
+import dynamic from 'next/dynamic';
+
+const PHChart = dynamic(() => import('@/components/charts/PHChart'), { ssr: false });
+const DerivativeChart = dynamic(() => import('@/components/charts/DerivativeChart'), { ssr: false });
+const ResultTable = dynamic(() => import('@/components/tool/ResultTable'), { ssr: false });
+const Report = dynamic(() => import('@/components/tool/Report'), { ssr: false });
+const ExperimentHistory = dynamic(() => import('@/components/tool/ExperimentHistory'), { ssr: false });
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
