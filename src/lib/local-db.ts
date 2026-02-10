@@ -1,4 +1,45 @@
 // (ลบไฟล์นี้ออกจากโปรเจค) — This file is obsolete. All logic now uses Supabase. Safe to delete.
+import type { Profile, UserSettings, Experiment, ChartConfig } from '@/types';
+
+// Lightweight localStorage helpers (minimal, for compatibility during local dev)
+type StoredUser = { id: string; email: string; password: string; full_name?: string | null; created_at: string };
+
+const STORAGE_KEYS = {
+    USERS: 'app_users',
+    PROFILES: 'app_profiles',
+    SETTINGS: 'app_settings',
+    EXPERIMENTS: 'app_experiments',
+    ADMINS: 'app_admins',
+    CURRENT_USER: 'app_current_user',
+} as const;
+
+function getItem<T>(key: string, def: T): T {
+    try {
+        if (typeof window === 'undefined') return def;
+        const raw = localStorage.getItem(key);
+        if (!raw) return def;
+        return JSON.parse(raw) as T;
+    } catch (e) {
+        return def;
+    }
+}
+
+function setItem<T>(key: string, val: T) {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(key, JSON.stringify(val));
+    } catch (e) {
+        // ignore
+    }
+}
+
+function generateUUID() {
+    return Math.random().toString(36).slice(2, 9);
+}
+
+function simpleHash(s: string) {
+    return s.split('').reverse().join('');
+}
 
 export function signUp(email: string, password: string, fullName?: string): { user: { id: string; email: string } | null; error: string | null } {
     const users = getItem<StoredUser[]>(STORAGE_KEYS.USERS, []);

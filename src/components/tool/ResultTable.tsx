@@ -9,10 +9,10 @@ interface ResultTableProps {
 
 export default function ResultTable({ result }: ResultTableProps) {
     return (
-        <div className="bg-dark-800 border border-dark-600 rounded-xl p-6 overflow-x-auto">
+        <div className="bg-dark-800 border border-dark-600 rounded-xl p-6 overflow-x-auto focus-visible:ring-2 focus-visible:ring-primary-500/80" tabIndex={0}>
             <h3 className="text-lg font-semibold text-white mb-4">📊 ตารางผลการคำนวณ</h3>
-
-            <table className="w-full border-collapse min-w-[600px]">
+            <table className="w-full border-collapse min-w-[600px]" aria-live="polite">
+                <caption className="sr-only">ผลการคำนวณไทเทรต</caption>
                 <thead>
                     <tr>
                         <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">
@@ -35,19 +35,19 @@ export default function ResultTable({ result }: ResultTableProps) {
                 <tbody>
                     {/* แถวแรก */}
                     <tr>
-                        <td className="bg-dark-800 border border-dark-600 px-3 py-2 text-center text-white">
+                        <td className="bg-dark-800 border border-dark-600 px-3 py-2 text-center text-white min-w-0 break-words">
                             {result.volume[0].toFixed(2)}
                         </td>
-                        <td className="bg-dark-800 border border-dark-600 px-3 py-2 text-center text-white">
+                        <td className="bg-dark-800 border border-dark-600 px-3 py-2 text-center text-white min-w-0 break-words">
                             {result.pH[0].toFixed(2)}
                         </td>
-                        <td className="bg-dark-800 border border-dark-600 px-3 py-2 text-center text-gray-500">
+                        <td className="bg-dark-800 border border-dark-600 px-3 py-2 text-center text-gray-500 min-w-0 break-words">
                             —
                         </td>
-                        <td className="bg-dark-800 border border-dark-600 px-3 py-2 text-center text-gray-500">
+                        <td className="bg-dark-800 border border-dark-600 px-3 py-2 text-center text-gray-500 min-w-0 break-words">
                             —
                         </td>
-                        <td className="bg-dark-800 border border-dark-600 px-3 py-2 text-center text-gray-500">
+                        <td className="bg-dark-800 border border-dark-600 px-3 py-2 text-center text-gray-500 min-w-0 break-words">
                             —
                         </td>
                     </tr>

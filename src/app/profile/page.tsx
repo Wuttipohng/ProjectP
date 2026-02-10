@@ -59,7 +59,7 @@ export default function ProfilePage() {
                                 อีเมล
                             </label>
                             <div className="flex items-center gap-2 px-4 py-2.5 bg-dark-700 border border-dark-600 rounded-lg text-gray-400">
-                                <Mail className="h-4 w-4" />
+                                <Mail className="h-4 w-4" aria-hidden="true" />
                                 <span>{user?.email}</span>
                             </div>
                             <p className="text-xs text-gray-500 mt-1">ไม่สามารถเปลี่ยนอีเมลได้</p>
@@ -69,12 +69,12 @@ export default function ProfilePage() {
                             label="มหาวิทยาลัย"
                             value={university}
                             onChange={(e) => setUniversity(e.target.value)}
-                            icon={<Building className="h-4 w-4" />}
+                            icon={<Building className="h-4 w-4" aria-hidden="true" />}
                             placeholder="มหาวิทยาลัย..."
                         />
 
-                        <Button onClick={handleSave} loading={loading} className="w-full">
-                            <Save className="h-4 w-4 mr-2" />
+                        <Button onClick={handleSave} loading={loading} className="w-full" aria-label="บันทึกโปรไฟล์">
+                            <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                             บันทึก
                         </Button>
                     </div>

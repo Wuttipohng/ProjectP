@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 // ...existing code...
 import { calculateTitration } from '@/core/titration';
 import { cn } from '@/lib/utils';
+import { saveExperiment, getCurrentUser } from '@/lib/local-db';
 import DataTable from '@/components/tool/DataTable';
 import PHChart from '@/components/charts/PHChart';
 import DerivativeChart from '@/components/charts/DerivativeChart';
@@ -247,7 +248,7 @@ export default function ToolPage() {
                     {activeTab === 'input' && (
                         <div className="text-center py-12 text-gray-400">
                             <Calculator className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                            <p className="text-lg">กรอกข้อมูลทางซ้าย แล้วกดปุ่ม "คำนวณ"</p>
+                            <p className="text-lg">กรอกข้อมูลทางซ้าย แล้วกดปุ่ม &quot;คำนวณ&quot;</p>
                             <p className="text-sm mt-2">
                                 หรือ copy จาก Excel แล้ว paste ที่ตาราง
                             </p>

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useToolStore } from '@/stores/useToolStore';
 // ...existing code...
 import { formatDateThai } from '@/lib/utils';
+import { deleteExperiment } from '@/lib/local-db';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 
@@ -33,8 +34,8 @@ export default function ExperimentHistory() {
 
     if (experiments.length === 0) {
         return (
-            <div className="bg-dark-800 border border-dark-600 rounded-xl p-6 text-center">
-                <FlaskConical className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+            <div className="bg-dark-800 border border-dark-600 rounded-xl p-6 text-center" role="status" aria-live="polite">
+                <FlaskConical className="h-12 w-12 text-gray-600 mx-auto mb-4" aria-hidden="true" />
                 <p className="text-gray-400">ยังไม่มีประวัติการทดลอง</p>
                 <p className="text-sm text-gray-500 mt-1">
                     เริ่มใส่ข้อมูลและกดคำนวณเพื่อบันทึกการทดลอง
@@ -46,15 +47,17 @@ export default function ExperimentHistory() {
     return (
         <div className="bg-dark-800 border border-dark-600 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary-400" />
+                <Clock className="h-5 w-5 text-primary-400" aria-hidden="true" />
                 ประวัติการทดลอง
             </h3>
 
-            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            <div className="space-y-3 max-h-[400px] overflow-y-auto" role="list">
                 {experiments.map((exp) => (
                     <div
                         key={exp.id}
+                        role="listitem"
                         className="group p-4 bg-dark-700 border border-dark-600 rounded-lg hover:border-primary-500/50 transition-all"
+                        tabIndex={0}
                     >
                         <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
@@ -79,14 +82,16 @@ export default function ExperimentHistory() {
                                     variant="secondary"
                                     size="sm"
                                     onClick={() => handleLoad(exp)}
+                                    aria-label={`โหลด ${exp.experiment_name}`}
                                 >
                                     โหลด
                                 </Button>
                                 <button
                                     onClick={() => handleDelete(exp.id)}
-                                    className="p-2 text-gray-500 hover:text-red-400 transition-colors"
+                                    className="p-2 text-gray-500 hover:text-red-400 transition-colors focus-visible:ring-2 focus-visible:ring-red-400/60 rounded"
+                                    aria-label={`ลบ ${exp.experiment_name}`}
                                 >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-4 w-4" aria-hidden="true" />
                                 </button>
                             </div>
                         </div>

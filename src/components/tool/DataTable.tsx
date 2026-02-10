@@ -119,6 +119,7 @@ export default function DataTable() {
         <div className="bg-dark-800 border border-dark-600 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-yellow-400" aria-hidden="true" />
                     📊 ข้อมูลการทดลอง
                 </h3>
                 <span className="text-sm text-gray-400">
@@ -153,35 +154,44 @@ export default function DataTable() {
                                 </td>
                                 <td className="bg-dark-800 border border-dark-600 px-1 py-1">
                                     <input
-                                        type="text"
+                                        type="number"
                                         inputMode="decimal"
-                                        className="data-input w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-white text-center focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 outline-none transition-all"
+                                        className="data-input w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-white text-center focus:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/80 outline-none transition-all"
                                         value={row.volume}
                                         onChange={(e) => updateRow(row.id, 'volume', e.target.value)}
                                         onPaste={(e) => handlePaste(e, index, 'volume')}
                                         onKeyDown={(e) => handleKeyDown(e, index, 'volume')}
                                         placeholder="0.00"
+                                        autoComplete="on"
+                                        name={`volume_${index}`}
+                                        aria-label={`Volume แถว ${index + 1}`}
+                                        spellCheck={false}
                                     />
                                 </td>
                                 <td className="bg-dark-800 border border-dark-600 px-1 py-1">
                                     <input
-                                        type="text"
+                                        type="number"
                                         inputMode="decimal"
-                                        className="data-input w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-white text-center focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 outline-none transition-all"
+                                        className="data-input w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-white text-center focus:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500/80 outline-none transition-all"
                                         value={row.pH}
                                         onChange={(e) => updateRow(row.id, 'pH', e.target.value)}
                                         onPaste={(e) => handlePaste(e, index, 'pH')}
                                         onKeyDown={(e) => handleKeyDown(e, index, 'pH')}
                                         placeholder="0.00"
+                                        autoComplete="on"
+                                        name={`ph_${index}`}
+                                        aria-label={`pH แถว ${index + 1}`}
+                                        spellCheck={false}
                                     />
                                 </td>
                                 <td className="bg-dark-800 border border-dark-600 px-1 py-1 text-center">
                                     <button
                                         onClick={() => removeRow(row.id)}
                                         disabled={dataRows.length <= 1}
-                                        className="p-2 text-gray-500 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                        className="p-2 text-gray-500 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors focus-visible:ring-2 focus-visible:ring-red-400"
+                                        aria-label={`ลบแถวที่ ${index + 1}`}
                                     >
-                                        <Trash2 className="h-4 w-4" />
+                                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                                     </button>
                                 </td>
                             </tr>
@@ -193,12 +203,12 @@ export default function DataTable() {
             {/* Actions */}
             <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
                 <div className="flex items-center gap-2">
-                    <Button variant="secondary" size="sm" onClick={addRow}>
-                        <Plus className="h-4 w-4 mr-1" />
+                    <Button variant="secondary" size="sm" onClick={addRow} aria-label="เพิ่มแถวใหม่">
+                        <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
                         เพิ่มแถว
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={clearAllRows}>
-                        <Trash2 className="h-4 w-4 mr-1" />
+                    <Button variant="ghost" size="sm" onClick={clearAllRows} aria-label="ลบข้อมูลทั้งหมด">
+                        <Trash2 className="h-4 w-4 mr-1" aria-hidden="true" />
                         ลบทั้งหมด
                     </Button>
                 </div>
@@ -206,7 +216,7 @@ export default function DataTable() {
 
             {/* Tip */}
             <div className="mt-4 flex items-start gap-2 p-3 bg-primary-500/10 border border-primary-500/20 rounded-lg">
-                <Lightbulb className="h-4 w-4 text-primary-400 mt-0.5 flex-shrink-0" />
+                <Lightbulb className="h-4 w-4 text-primary-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <p className="text-sm text-primary-300">
                     <strong>Tip:</strong> Copy ข้อมูลจาก Excel แล้ว Ctrl+V ที่ช่องแรกได้เลย! รองรับ Tab, Comma, Space
                 </p>

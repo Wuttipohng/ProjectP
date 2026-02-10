@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 // ...existing code...
 import { useAuthStore } from '@/stores/useAuthStore';
+import { signIn } from '@/lib/local-db';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
@@ -54,7 +55,7 @@ export default function LoginPage() {
                         <p className="text-gray-400">ยินดีต้อนรับกลับมา!</p>
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-4">
+                    <form onSubmit={handleLogin} className="space-y-4" aria-label="form-login">
                         <Input
                             label="อีเมล"
                             type="email"
@@ -78,9 +79,10 @@ export default function LoginPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-9 text-gray-400 hover:text-white"
+                                className="absolute right-3 top-9 text-gray-400 hover:text-white focus-visible:ring-2 focus-visible:ring-primary-500/80 rounded"
+                                aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
                             >
-                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                             </button>
                         </div>
 

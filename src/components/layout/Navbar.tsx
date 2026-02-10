@@ -38,8 +38,8 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center space-x-2 group">
-                        <div className="p-2 rounded-lg bg-primary-500/10 group-hover:bg-primary-500/20 transition-colors">
+                    <Link href="/" className="flex items-center space-x-2 group focus-visible:ring-2 focus-visible:ring-primary-500/80" aria-label="หน้าแรก">
+                        <div className="p-2 rounded-lg bg-primary-500/10 group-hover:bg-primary-500/20 transition-colors" aria-hidden="true">
                             <FlaskConical className="h-6 w-6 text-primary-500" />
                         </div>
                         <span className="font-bold text-lg gradient-text hidden sm:block">
@@ -56,7 +56,7 @@ export default function Navbar() {
                                         key={link.href}
                                         href={link.href}
                                         className={cn(
-                                            'flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200',
+                                            'flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary-500/80',
                                             pathname === link.href
                                                 ? 'bg-primary-500/20 text-primary-400'
                                                 : 'text-gray-400 hover:text-white hover:bg-dark-700'

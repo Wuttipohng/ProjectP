@@ -1,4 +1,4 @@
-'use client';
+ 'use client';
 
 import { FileDown, Download } from 'lucide-react';
 import type { TitrationResult, ExperimentConfig, ChartConfig } from '@/types';
@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { exportPDF } from '@/core/pdfGenerator';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
+import { useState } from 'react';
 
 interface ReportProps {
     result: TitrationResult;
@@ -23,6 +24,7 @@ export default function Report({
     dvChartRef,
 }: ReportProps) {
     const { profile } = useAuthStore();
+    const [exporting, setExporting] = useState(false);
 
     const handleExportPDF = async () => {
         const phCanvas = phChartRef.current?.canvas;
@@ -34,6 +36,7 @@ export default function Report({
         }
 
         try {
+            setExporting(true);
             await exportPDF(
                 result,
                 config,
@@ -50,6 +53,9 @@ export default function Report({
             console.error('PDF export error:', error);
             toast.error('เกิดข้อผิดพลาดในการสร้าง PDF');
         }
+        finally {
+            setExporting(false);
+        }
     };
 
     return (
@@ -58,9 +64,17 @@ export default function Report({
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                     📍 สรุปผลการทดลอง
                 </h3>
-                <Button onClick={handleExportPDF} className="flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    Export PDF
+                <Button onClick={handleExportPDF} className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-primary-500/80" aria-label="Export PDF" disabled={exporting}>
+                    {exporting ? (
+                        <svg className="-ml-1 mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            <style>{`@media (prefers-reduced-motion: reduce) {.animate-spin {animation: none !important;}}`}</style>
+                        </svg>
+                    ) : (
+                        <Download className="h-4 w-4" aria-hidden="true" />
+                    )}
+                    {exporting ? 'กำลังส่งออก…' : 'Export PDF'}
                 </Button>
             </div>
 

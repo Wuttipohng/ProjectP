@@ -1,5 +1,15 @@
 import { create } from 'zustand';
 import { createClient } from '@/lib/supabase/client';
+import {
+    getCurrentUser,
+    getProfile,
+    getSettings,
+    getExperiments,
+    ensureFirstUserIsAdmin,
+    isAdmin as dbIsAdmin,
+    updateProfile as dbUpdateProfile,
+    signOut,
+} from '@/lib/local-db';
 import type { AuthState, Profile, UserSettings, Experiment } from '@/types';
 
 interface AuthStore extends AuthState {

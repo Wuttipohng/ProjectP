@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Users, FlaskConical, BarChart3, Calendar, TrendingUp } from 'lucide-react';
 // ...existing code...
 import { formatDateThai } from '@/lib/utils';
+import { getAllProfiles, getAllExperiments } from '@/lib/local-db';
 import Card from '@/components/ui/Card';
 
 interface Stats {

@@ -155,13 +155,13 @@ export const useToolStore = create<ToolStore>((set, get) => ({
 
         set({
             dataRows,
-            config: {
-                expName: exp.experiment_name,
-                expNo: exp.experiment_no,
-                studentName: get().config.studentName,
-                xLabel: exp.chart_config?.xLabel || 'Volume of NaOH (mL)',
-                yLabel: exp.chart_config?.yLabel || 'pH',
-            },
+                config: {
+                    expName: exp.experiment_name,
+                    expNo: exp.experiment_no,
+                    studentName: get().config.studentName,
+                    xLabel: (exp.chart_config as any)?.xLabel || 'Volume of NaOH (mL)',
+                    yLabel: (exp.chart_config as any)?.yLabel || 'pH',
+                },
             chartConfig: exp.chart_config || defaultChartConfig,
             result: null,
             activeTab: 'input',
