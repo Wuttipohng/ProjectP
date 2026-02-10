@@ -75,5 +75,4 @@ export function getCanvasFromRef(ref: any): HTMLCanvasElement | null {
     }
 }
 
-// Explicit named exports for compatibility with some bundlers
-export { downloadChartAsPNG, getCanvasFromRef };
+// Note: functions are already exported via their declarations above.
