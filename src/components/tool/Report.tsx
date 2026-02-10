@@ -4,6 +4,7 @@ import { FileDown, Download } from 'lucide-react';
 import type { TitrationResult, ExperimentConfig, ChartConfig } from '@/types';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { exportPDF } from '@/core/pdfGenerator';
+import { downloadChartAsPNG } from '@/lib/exportChart';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
@@ -64,7 +65,26 @@ export default function Report({
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                     📍 สรุปผลการทดลอง
                 </h3>
-                <Button onClick={handleExportPDF} className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-primary-500/80" aria-label="Export PDF" disabled={exporting}>
+                <div className="flex items-center gap-2">
+                    <Button onClick={() => {
+                        const ok = downloadChartAsPNG(phChartRef, `${config.expName || 'ph-chart'}.png`);
+                        if (ok) toast.success('ดาวน์โหลดกราฟ pH สำเร็จ');
+                        else toast.error('ไม่สามารถดาวน์โหลดกราฟ pH ได้');
+                    }} className="flex items-center gap-2" aria-label="Download pH PNG">
+                        <FileDown className="h-4 w-4" aria-hidden="true" />
+                        pH PNG
+                    </Button>
+
+                    <Button onClick={() => {
+                        const ok = downloadChartAsPNG(dvChartRef, `${config.expName || 'dv-chart'}.png`);
+                        if (ok) toast.success('ดาวน์โหลดกราฟ ΔpH/ΔV สำเร็จ');
+                        else toast.error('ไม่สามารถดาวน์โหลดกราฟ ΔpH/ΔV ได้');
+                    }} className="flex items-center gap-2" aria-label="Download ΔpH/ΔV PNG">
+                        <FileDown className="h-4 w-4" aria-hidden="true" />
+                        ΔpH/ΔV PNG
+                    </Button>
+
+                    <Button onClick={handleExportPDF} className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-primary-500/80" aria-label="Export PDF" disabled={exporting}>
                     {exporting ? (
                         <svg className="-ml-1 mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
