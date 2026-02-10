@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 
 export default function DataTable() {
-    const { dataRows, addRow, removeRow, updateRow, clearAllRows, setDataRows } = useToolStore();
+    const { dataRows, addRow, removeRow, updateRow, clearAllRows, setDataRows, config } = useToolStore();
 
     // ★ Smart Paste Handler
     const handlePaste = (
