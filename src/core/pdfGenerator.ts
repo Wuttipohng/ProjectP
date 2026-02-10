@@ -161,11 +161,14 @@ export async function exportPDF(
         }
     };
 
-    // Include time (HH:MM) along with date for clearer timestamp in the PDF
-    const formattedDate = new Date().toLocaleString('th-TH-u-nu-latn', {
+    // Use separate, clearly labeled date and time fields for export
+    const now = new Date();
+    const formattedDateOnly = now.toLocaleDateString('th-TH-u-nu-latn', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
+    });
+    const formattedTimeOnly = now.toLocaleTimeString('th-TH-u-nu-latn', {
         hour: '2-digit',
         minute: '2-digit',
     });
@@ -175,7 +178,8 @@ export async function exportPDF(
         // Prefer config.studentName, fall back to profile.full_name when available
         ['Experimenter', safe(config.studentName) !== '-' ? safe(config.studentName) : safe(profile.full_name) || '-'],
         ['University', safe(profile.university) || '-'],
-        ['Date', safe(formattedDate)],
+        ['Date', safe(formattedDateOnly)],
+        ['Time', safe(formattedTimeOnly)],
     ];
 
     for (const [label, value] of info) {
@@ -300,13 +304,18 @@ export async function exportPDF(
 
     y = (pdf as any).lastAutoTable.finalY + 8;
 
-    // Footer and finish (summary removed per user request)
+    // add a short note that exported table reflects applied overrides
+    pdf.setFontSize(9);
+    pdf.setFont(bodyFont, 'normal');
+    pdf.setTextColor(...GRAY_TEXT);
+    pdf.text('Note: All table values reflect any manual overrides applied in the calculation table.', MARGIN, y + 2);
+    y += 6;
+
     drawFooter(pdf);
 
     // ═══ Save ═══
-    const fileName = `${config.expName}_${config.expNo}_report.pdf`.replace(
-        /\s+/g,
-        '_'
-    );
+    // include a short timestamp in the filename for clarity
+    const ts = now.toISOString().replace(/[:.]/g, '-');
+    const fileName = `${config.expName}_${config.expNo}_report_${ts}`.replace(/\s+/g, '_') + '.pdf';
     pdf.save(fileName);
 }
