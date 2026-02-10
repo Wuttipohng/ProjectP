@@ -21,6 +21,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import toast from 'react-hot-toast';
+import { downloadChartAsPNG } from '@/lib/exportChart';
 
 export default function ToolPage() {
     const router = useRouter();
@@ -260,18 +261,71 @@ export default function ToolPage() {
                     {activeTab === 'result' && result && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="grid md:grid-cols-2 gap-6">
-                                <PHChart
-                                    ref={phChartRef}
-                                    result={result}
-                                    chartConfig={chartConfig}
-                                    expConfig={config}
-                                />
-                                <DerivativeChart
-                                    ref={dvChartRef}
-                                    result={result}
-                                    chartConfig={chartConfig}
-                                    expConfig={config}
-                                />
+                                <div data-chart="ph">
+                                    <PHChart
+                                        ref={phChartRef}
+                                        result={result}
+                                        chartConfig={chartConfig}
+                                        expConfig={config}
+                                    />
+                                    <div className="mt-3 flex justify-center">
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                try {
+                                                    const canvas = document.querySelector('[data-chart="ph"] canvas') as HTMLCanvasElement | null;
+                                                    if (!canvas) return toast.error('ไม่พบกราฟ pH บนหน้า');
+                                                    const url = canvas.toDataURL('image/png', 1.0);
+                                                    const a = document.createElement('a');
+                                                    a.href = url;
+                                                    a.download = `${config.expName || 'ph-chart'}.png`;
+                                                    document.body.appendChild(a);
+                                                    a.click();
+                                                    a.remove();
+                                                    toast.success('ดาวน์โหลดกราฟ pH สำเร็จ');
+                                                } catch (e) {
+                                                    console.error('Save pH PNG error', e);
+                                                    toast.error('ไม่สามารถดาวน์โหลดกราฟ pH ได้');
+                                                }
+                                            }}
+                                        >
+                                            Save pH PNG
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div data-chart="dv">
+                                    <DerivativeChart
+                                        ref={dvChartRef}
+                                        result={result}
+                                        chartConfig={chartConfig}
+                                        expConfig={config}
+                                    />
+                                    <div className="mt-3 flex justify-center">
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                try {
+                                                    const canvas = document.querySelector('[data-chart="dv"] canvas') as HTMLCanvasElement | null;
+                                                    if (!canvas) return toast.error('ไม่พบกราฟ ΔpH/ΔV บนหน้า');
+                                                    const url = canvas.toDataURL('image/png', 1.0);
+                                                    const a = document.createElement('a');
+                                                    a.href = url;
+                                                    a.download = `${config.expName || 'dv-chart'}.png`;
+                                                    document.body.appendChild(a);
+                                                    a.click();
+                                                    a.remove();
+                                                    toast.success('ดาวน์โหลดกราฟ ΔpH/ΔV สำเร็จ');
+                                                } catch (e) {
+                                                    console.error('Save dv PNG error', e);
+                                                    toast.error('ไม่สามารถดาวน์โหลดกราฟ ΔpH/ΔV ได้');
+                                                }
+                                            }}
+                                        >
+                                            Save ΔpH/ΔV PNG
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
                             <ResultTable result={result} />
                         </div>
