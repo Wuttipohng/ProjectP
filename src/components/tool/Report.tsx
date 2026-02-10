@@ -32,67 +32,7 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
 
     const internalPhRef = useRef<any>(null);
     const internalDvRef = useRef<any>(null);
-        appendDebug(`phDataUrl found: ${!!phDataUrl}; dvDataUrl found: ${!!dvDataUrl}`);
-
-        // DOM fallbacks (visible charts and hidden fallback charts)
-        try {
-            if (!phDataUrl) {
-                const c = document.querySelector('[data-chart="ph"] canvas') as HTMLCanvasElement | null;
-                if (c) phDataUrl = c.toDataURL('image/png', 1.0);
-            }
-            if (!dvDataUrl) {
-                const c2 = document.querySelector('[data-chart="dv"] canvas') as HTMLCanvasElement | null;
-                if (c2) dvDataUrl = c2.toDataURL('image/png', 1.0);
-            }
-
-            // check hidden copies rendered specifically for export
-            if (!phDataUrl) {
-                const hc = document.querySelector('[data-chart-hidden="ph"] canvas') as HTMLCanvasElement | null;
-                if (hc) phDataUrl = hc.toDataURL('image/png', 1.0);
-            }
-            if (!dvDataUrl) {
-                const hc2 = document.querySelector('[data-chart-hidden="dv"] canvas') as HTMLCanvasElement | null;
-                if (hc2) dvDataUrl = hc2.toDataURL('image/png', 1.0);
-            }
-        } catch (e) {
-            console.error('DOM fallback error', e);
-        }
-
-        if (!phDataUrl || !dvDataUrl) {
-            const details = { phDataUrl: !!phDataUrl, dvDataUrl: !!dvDataUrl, phRef: phChartRef?.current, dvRef: dvChartRef?.current };
-            console.error('handleExportPDF: image data not found', details);
-            appendDebug(`image data missing: ${JSON.stringify(details)}`);
-            toast.error('ไม่สามารถสร้าง PDF ได้ — ไม่พบภาพกราฟ');
-            return;
-        }
-
-        try {
-            setExporting(true);
-            appendDebug('Importing PDF generator...');
-            const { exportPDF } = await import('@/core/pdfGenerator');
-            appendDebug('Calling exportPDF()');
-            await exportPDF(
-                result,
-                config,
-                chartConfig,
-                {
-                    full_name: profile?.full_name || config.studentName || '',
-                    university: profile?.university || '',
-                },
-                phDataUrl,
-                dvDataUrl
-            );
-            appendDebug('exportPDF() completed');
-            toast.success('📄 ส่งออก PDF สำเร็จ!');
-        } catch (error) {
-            console.error('PDF export error:', error);
-            appendDebug(`export error: ${error instanceof Error ? error.message : String(error)}`);
-            if ((error as any)?.stack) appendDebug((error as any).stack);
-            toast.error('เกิดข้อผิดพลาดในการสร้าง PDF — ดูคอนโซลสำหรับรายละเอียด');
-        } finally {
-            setExporting(false);
-        }
-    };
+    
 
     return (
         <div className="bg-dark-800 border border-dark-600 rounded-xl p-6">
