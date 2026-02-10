@@ -35,23 +35,7 @@ export async function updateSession(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
-    // Protected routes (admin removed so admin page is publicly accessible)
-    const protectedRoutes = ['/tool', '/profile'];
-    const authRoutes = ['/login', '/register'];
-
-    // ถ้าไม่ได้ login และพยายามเข้า protected route
-    if (!user && protectedRoutes.some(route => pathname.startsWith(route))) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/login';
-        return NextResponse.redirect(url);
-    }
-
-    // ถ้า login แล้วและพยายามเข้า auth route
-    if (user && authRoutes.some(route => pathname.startsWith(route))) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/tool';
-        return NextResponse.redirect(url);
-    }
+    // Authentication redirects disabled — all routes are publicly accessible
 
     // Admin gating removed — `/admin` is now accessible without admin check.
 

@@ -30,13 +30,7 @@ export default function ToolPage() {
 
     const { user, profile, fetchExperiments, experiments } = useAuthStore();
 
-    // Redirect if not logged in
-    useEffect(() => {
-        if (!user && typeof window !== 'undefined') {
-// ...existing code...
-            if (!getCurrentUser()) router.push('/login');
-        }
-    }, [user, router]);
+    // Authentication removed — no redirect to login
 
     const {
         dataRows,
