@@ -147,11 +147,17 @@ export default function AdminPage() {
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 {statCards.map((stat, index) => (
-                    <Card key={index} className="relative overflow-hidden">
-                        <div className={`absolute inset-0 ${stat.bg} opacity-50`}></div>
+                    <Card
+                        key={index}
+                        className="relative overflow-hidden"
+                        aria-label={`${stat.label} — ${stat.value}`}
+                    >
+                        <div className={`absolute inset-0 ${stat.bg} opacity-50`} aria-hidden="true"></div>
                         <div className="relative">
-                            <stat.icon className={`h-8 w-8 ${stat.color} mb-2`} />
-                            <p className="text-3xl font-bold text-white">{stat.value}</p>
+                            <stat.icon className={`h-8 w-8 ${stat.color} mb-2`} aria-hidden="true" />
+                            <p className="text-3xl font-bold text-white" aria-live="polite" aria-atomic="true">
+                                {stat.value}
+                            </p>
                             <p className="text-sm text-gray-400">
                                 {stat.label}
                                 {stat.subLabel && (
@@ -170,11 +176,13 @@ export default function AdminPage() {
                         <Users className="h-5 w-5 text-blue-400" />
                         ผู้ใช้ล่าสุด
                     </h2>
-                    <div className="space-y-3">
+                    <div className="space-y-3" role="list" aria-label="ผู้ใช้ล่าสุด">
                         {stats.recentUsers.map((user) => (
                             <div
                                 key={user.id}
-                                className="flex items-center justify-between p-3 bg-dark-700 rounded-lg"
+                                role="listitem"
+                                tabIndex={0}
+                                className="flex items-center justify-between p-3 bg-dark-700 rounded-lg focus-visible:ring-2 focus-visible:ring-primary-400"
                             >
                                 <div>
                                     <p className="text-white font-medium">
@@ -196,11 +204,13 @@ export default function AdminPage() {
                         <FlaskConical className="h-5 w-5 text-primary-400" />
                         การทดลองล่าสุด
                     </h2>
-                    <div className="space-y-3">
+                    <div className="space-y-3" role="list" aria-label="การทดลองล่าสุด">
                         {stats.recentExperiments.map((exp) => (
                             <div
                                 key={exp.id}
-                                className="flex items-center justify-between p-3 bg-dark-700 rounded-lg"
+                                role="listitem"
+                                tabIndex={0}
+                                className="flex items-center justify-between p-3 bg-dark-700 rounded-lg focus-visible:ring-2 focus-visible:ring-primary-400"
                             >
                                 <div>
                                     <p className="text-white font-medium">{exp.experiment_name}</p>
