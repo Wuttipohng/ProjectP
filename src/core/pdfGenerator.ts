@@ -198,11 +198,11 @@ export async function exportPDF(
 
     y += 48;
 
-    // ── กราฟ 1: pH vs Volume ──
+    // ── กราฟ 1: Y vs X (use configured labels) ──
     pdf.setTextColor(...DARK_TEXT);
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`Graph 1: pH vs ${config.xLabel}`, MARGIN, y);
+    pdf.text(`Graph 1: ${safe(config.yLabel)} vs ${safe(config.xLabel)}`, MARGIN, y);
     y += 4;
 
     // กรอบกราฟ (มุมมน + เงา)
@@ -214,11 +214,11 @@ export async function exportPDF(
     pdf.addImage(phImage, 'PNG', MARGIN + 2, y + 2, CONTENT_WIDTH - 4, graphHeight - 4);
     y += graphHeight + 6;
 
-    // ── กราฟ 2: ΔpH/ΔV vs Volume ──
+    // ── กราฟ 2: ΔY/ΔX vs X (use configured labels) ──
     pdf.setTextColor(...DARK_TEXT);
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`Graph 2: dpH/dV vs ${config.xLabel}`, MARGIN, y);
+    pdf.text(`Graph 2: Δ${safe(config.yLabel)}/Δ${safe(config.xLabel)} vs ${safe(config.xLabel)}`, MARGIN, y);
     y += 4;
 
     drawRoundedBox(pdf, MARGIN, y, CONTENT_WIDTH, graphHeight, { shadow: true });
@@ -242,32 +242,30 @@ export async function exportPDF(
     pdf.text('Calculation Results', MARGIN, y);
     y += 4;
 
-    // สร้างข้อมูลตาราง
+    // สร้างข้อมูลตาราง (robust: รองรับความยาว arrays ที่ต่างกัน)
     const tableBody: (string | number)[][] = [];
+    const rows = Math.max(result.volume?.length || 0, result.pH?.length || 0);
+    for (let i = 0; i < rows; i++) {
+        const vol = typeof result.volume?.[i] === 'number' ? result.volume[i].toFixed(2) : '-';
+        const ph = typeof result.pH?.[i] === 'number' ? result.pH[i].toFixed(2) : '-';
 
-    // แถวแรก (ไม่มี ΔpH, ΔV, ΔpH/ΔV)
-    tableBody.push([
-        result.volume[0].toFixed(2),
-        result.pH[0].toFixed(2),
-        '—',
-        '—',
-        '—',
-    ]);
+        // delta arrays are one shorter (differences between points), map index i>0 -> delta index i-1
+        let dPH: string | number = '—';
+        let dV: string | number = '—';
+        let dPHdV: string | number = '—';
+        if (i > 0) {
+            const di = i - 1;
+            if (typeof result.deltaPH?.[di] === 'number') dPH = result.deltaPH[di].toFixed(2);
+            if (typeof result.deltaV?.[di] === 'number') dV = result.deltaV[di].toFixed(2);
+            if (typeof result.dPHdV?.[di] === 'number') dPHdV = result.dPHdV[di].toFixed(2);
+        }
 
-    // แถวที่เหลือ
-    for (let i = 0; i < result.dPHdV.length; i++) {
-        tableBody.push([
-            result.volume[i + 1].toFixed(2),
-            result.pH[i + 1].toFixed(2),
-            result.deltaPH[i].toFixed(2),
-            result.deltaV[i].toFixed(2),
-            result.dPHdV[i].toFixed(2),
-        ]);
+        tableBody.push([vol, ph, dPH, dV, dPHdV]);
     }
 
     autoTable(pdf, {
         startY: y,
-        head: [['Volume (mL)', 'pH', 'ΔpH', 'ΔV', 'ΔpH/ΔV']],
+        head: [[safe(config.xLabel), safe(config.yLabel), 'Δ' + safe(config.yLabel), 'Δ' + safe(config.xLabel), 'Δ' + safe(config.yLabel) + '/' + 'Δ' + safe(config.xLabel)]],
         body: tableBody,
         theme: 'grid',
         headStyles: {
