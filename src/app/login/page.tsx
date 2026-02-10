@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 // ...existing code...
-import { useAuthStore } from '@/stores/useAuthStore';
-import { signIn } from '@/lib/local-db';
+// login/sign-in functionality disabled: removed sign-in helper and store usage
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
@@ -14,7 +13,7 @@ import toast from 'react-hot-toast';
 
 export default function LoginPage() {
     const router = useRouter();
-    const { setUser, fetchProfile, fetchSettings, fetchExperiments, checkAdmin } = useAuthStore();
+    // auth actions removed — sign-in is disabled
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -24,25 +23,7 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-
-        const { user, error } = signIn(email, password);
-
-        if (error) {
-            toast.error(error);
-            setLoading(false);
-            return;
-        }
-
-        if (user) {
-            setUser(user);
-            await fetchProfile();
-            await fetchSettings();
-            await fetchExperiments();
-            await checkAdmin();
-            toast.success('เข้าสู่ระบบสำเร็จ!');
-            router.push('/tool');
-        }
-
+        toast.error('การเข้าสู่ระบบถูกปิดชั่วคราว');
         setLoading(false);
     };
 
