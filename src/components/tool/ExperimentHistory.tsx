@@ -10,7 +10,7 @@ import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 
 export default function ExperimentHistory() {
-    const { experiments, fetchExperiments } = useAuthStore();
+    const { experiments, fetchExperiments, deleteExperiment } = useAuthStore();
     const { loadExperiment } = useToolStore();
 
     const handleLoad = (exp: (typeof experiments)[0]) => {
@@ -21,14 +21,13 @@ export default function ExperimentHistory() {
     const handleDelete = async (id: string) => {
         if (!confirm('คุณต้องการลบการทดลองนี้?')) return;
 
-        const success = deleteExperiment(id);
+        const success = await deleteExperiment(id);
 
         if (!success) {
             toast.error('ลบไม่สำเร็จ');
             return;
         }
 
-        await fetchExperiments();
         toast.success('ลบสำเร็จ!');
     };
 

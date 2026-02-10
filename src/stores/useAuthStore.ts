@@ -28,6 +28,7 @@ interface AuthStore extends AuthState {
     fetchExperiments: () => Promise<void>;
     checkAdmin: () => Promise<void>;
     updateProfile: (data: Partial<Profile>) => Promise<void>;
+    deleteExperiment: (expId: string) => Promise<boolean>;
     logout: () => Promise<void>;
     reset: () => void;
 }
@@ -80,8 +81,66 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     fetchExperiments: async () => {
         const { user } = get();
         if (!user) return;
+        // Prefer Supabase when available, fall back to local-db
+        try {
+            const supabase = createClient();
+            const { data, error } = await supabase.from('experiments').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(100);
+            if (!error && data) {
+                set({ experiments: data as any });
+                return;
+            }
+        } catch (e) {
+            // ignore and fallback
+        }
+
         const experiments = getExperiments(user.id);
         set({ experiments });
+    },
+
+    deleteExperiment: async (expId: string) => {
+        const { user } = get();
+        if (!user) return false;
+
+        // Try Supabase delete
+        try {
+            const supabase = createClient();
+            const { error } = await supabase.from('experiments').delete().eq('id', expId);
+            if (!error) {
+                // refresh list
+                await get().fetchExperiments();
+                return true;
+            }
+        } catch (e) {
+            // ignore
+        }
+
+        // Fallback to local-db
+        const success = (await Promise.resolve()).then(() => {
+            return (getExperiments as any) ? (true) : false;
+        });
+
+        try {
+            const res = (await Promise.resolve()) as unknown;
+        } catch {}
+
+        // call local delete
+        try {
+            const ok = (await Promise.resolve()).then(() => false);
+        } catch {}
+
+        // Final fallback: call deleteExperiment from local-db directly
+        try {
+            const { deleteExperiment } = await import('@/lib/local-db');
+            const ok = deleteExperiment(expId);
+            if (ok) {
+                await get().fetchExperiments();
+                return true;
+            }
+        } catch (e) {
+            // ignore
+        }
+
+        return false;
     },
 
     checkAdmin: async () => {
