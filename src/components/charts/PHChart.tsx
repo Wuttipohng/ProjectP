@@ -30,10 +30,11 @@ interface PHChartProps {
     result: TitrationResult;
     chartConfig: ChartConfig;
     expConfig: ExperimentConfig;
+    experimentsCount?: number;
 }
 
 const PHChart = forwardRef<any, PHChartProps>(
-    ({ result, chartConfig, expConfig }, ref) => {
+    ({ result, chartConfig, expConfig, experimentsCount }, ref) => {
         const data = {
             labels: result.volume.map((v) => v.toFixed(2)),
             datasets: [
@@ -70,7 +71,7 @@ const PHChart = forwardRef<any, PHChartProps>(
                 },
                 title: {
                     display: true,
-                    text: `pH vs ${expConfig.xLabel}`,
+                    text: `pH vs ${expConfig.xLabel} (จำนวนการทดลอง: ${experimentsCount ?? 1})`,
                     color: '#fff',
                     font: {
                         size: 16,

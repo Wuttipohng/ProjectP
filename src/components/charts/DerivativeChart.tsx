@@ -30,10 +30,11 @@ interface DerivativeChartProps {
     result: TitrationResult;
     chartConfig: ChartConfig;
     expConfig: ExperimentConfig;
+    experimentsCount?: number;
 }
 
 const DerivativeChart = forwardRef<any, DerivativeChartProps>(
-    ({ result, chartConfig, expConfig }, ref) => {
+    ({ result, chartConfig, expConfig, experimentsCount }, ref) => {
         const data = {
             labels: result.plotVolume.map((v) => v.toFixed(2)),
             datasets: [
@@ -70,7 +71,7 @@ const DerivativeChart = forwardRef<any, DerivativeChartProps>(
                 },
                 title: {
                     display: true,
-                    text: `ΔpH/ΔV vs ${expConfig.xLabel}`,
+                    text: `ΔpH/ΔV vs ${expConfig.xLabel} (จำนวนการทดลอง: ${experimentsCount ?? 1})`,
                     color: '#fff',
                     font: {
                         size: 16,

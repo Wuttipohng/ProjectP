@@ -28,7 +28,7 @@ export default function ToolPage() {
     const phChartRef = useRef<any>(null);
     const dvChartRef = useRef<any>(null);
 
-    const { user, profile, fetchExperiments } = useAuthStore();
+    const { user, profile, fetchExperiments, experiments } = useAuthStore();
 
     // Redirect if not logged in
     useEffect(() => {
@@ -267,6 +267,7 @@ export default function ToolPage() {
                                         result={result}
                                         chartConfig={chartConfig}
                                         expConfig={config}
+                                        experimentsCount={experiments?.length ?? 0}
                                     />
                                     <div className="mt-3 flex justify-center">
                                         <Button
@@ -300,6 +301,7 @@ export default function ToolPage() {
                                         result={result}
                                         chartConfig={chartConfig}
                                         expConfig={config}
+                                        experimentsCount={experiments?.length ?? 0}
                                     />
                                     <div className="mt-3 flex justify-center">
                                         <Button
