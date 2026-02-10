@@ -21,7 +21,12 @@ export default function GoToToolButton() {
     }, [router, setActiveTab]);
 
     return (
-        <Button size="lg" onClick={handleClick} className="group">
+        <Button
+            variant="ghost"
+            size="lg"
+            onClick={handleClick}
+            className="group border border-white/20 text-white bg-transparent hover:bg-dark-700"
+        >
             ไปที่เครื่องมือ
             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
         </Button>
