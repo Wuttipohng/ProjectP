@@ -41,13 +41,13 @@ const DerivativeChart = forwardRef<any, DerivativeChartProps>(
                 {
                     label: 'ΔpH/ΔV',
                     data: result.dPHdV,
-                    borderColor: '#a855f7',
-                    backgroundColor: '#a855f7',
+                    borderColor: '#66ccff',
+                    backgroundColor: '#66ccff',
                     pointBackgroundColor: result.dPHdV.map((v, i) =>
-                        i === result.eqIndex ? '#ef4444' : '#a855f7'
+                        i === result.eqIndex ? '#ef4444' : '#66ccff'
                     ),
                     pointBorderColor: result.dPHdV.map((v, i) =>
-                        i === result.eqIndex ? '#ef4444' : '#a855f7'
+                        i === result.eqIndex ? '#ef4444' : '#66ccff'
                     ),
                     pointRadius: result.dPHdV.map((v, i) =>
                         i === result.eqIndex ? 8 : 4
@@ -89,7 +89,7 @@ const DerivativeChart = forwardRef<any, DerivativeChartProps>(
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
                     titleColor: '#fff',
                     bodyColor: '#fff',
-                    borderColor: '#a855f7',
+                    borderColor: '#66ccff',
                     borderWidth: 1,
                     callbacks: {
                         label: (context: any) => {

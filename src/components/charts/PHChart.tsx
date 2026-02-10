@@ -89,7 +89,7 @@ const PHChart = forwardRef<any, PHChartProps>(
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
                     titleColor: '#fff',
                     bodyColor: '#fff',
-                    borderColor: '#6c63ff',
+                    borderColor: '#33b8ff',
                     borderWidth: 1,
                     callbacks: {
                         label: (context: any) => {

@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS experiments (
         "yLabel": "pH",
         "xMax": 10, "yMaxPH": 14, "yMaxDV": 6,
         "xStep": 2, "yStepPH": 2, "yStepDV": 1,
-        "lineColor": "#6c63ff", "markerColor": "#6c63ff"
+           "lineColor": "#33b8ff", "markerColor": "#33b8ff"
     }',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
     default_chart_config JSONB DEFAULT '{
         "xMax": 10, "yMaxPH": 14, "yMaxDV": 6,
         "xStep": 2, "yStepPH": 2, "yStepDV": 1,
-        "lineColor": "#6c63ff", "markerColor": "#6c63ff"
+           "lineColor": "#33b8ff", "markerColor": "#33b8ff"
     }',
     theme TEXT DEFAULT 'dark',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

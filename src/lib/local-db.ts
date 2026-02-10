@@ -86,7 +86,7 @@ export function signUp(email: string, password: string, fullName?: string): { us
         default_chart_config: {
             xMax: 10, yMaxPH: 14, yMaxDV: 6,
             xStep: 2, yStepPH: 2, yStepDV: 1,
-            lineColor: '#6c63ff', markerColor: '#6c63ff',
+            lineColor: '#33b8ff', markerColor: '#33b8ff',
         },
         theme: 'dark',
         created_at: now,

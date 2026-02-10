@@ -8,7 +8,8 @@ import autoTable from 'jspdf-autotable';
 import type { TitrationResult, ExperimentConfig, ChartConfig } from '@/types';
 
 // ─── Colors ───
-const PURPLE: [number, number, number] = [108, 99, 255];
+// primary icy-blue used for PDF accents (diamond-inspired)
+const PURPLE: [number, number, number] = [51, 184, 255];
 const DARK_TEXT: [number, number, number] = [0, 0, 0]; // use pure black for exported PDF text
 const GRAY_TEXT: [number, number, number] = [120, 120, 120];
 const YELLOW_BG: [number, number, number] = [255, 249, 196];

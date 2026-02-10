@@ -130,8 +130,8 @@ export const DEFAULT_CHART_CONFIG: ChartConfig = {
     xStep: 2,
     yStepPH: 2,
     yStepDV: 1,
-    lineColor: '#6c63ff',
-    markerColor: '#6c63ff',
+    lineColor: '#33b8ff',
+    markerColor: '#33b8ff',
 };
 
 export const INITIAL_DATA_ROWS: DataRow[] = [
