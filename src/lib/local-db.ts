@@ -101,16 +101,8 @@ export function signUp(email: string, password: string, fullName?: string): { us
 }
 
 export function signIn(email: string, password: string): { user: { id: string; email: string } | null; error: string | null } {
-    const users = getItem<StoredUser[]>(STORAGE_KEYS.USERS, []);
-    const found = users.find((u) => u.email === email && u.password === simpleHash(password));
-
-    if (!found) {
-        return { user: null, error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
-    }
-
-    const userInfo = { id: found.id, email: found.email };
-    setItem(STORAGE_KEYS.CURRENT_USER, userInfo);
-    return { user: userInfo, error: null };
+    // Sign-in is disabled in this build — return an error to callers.
+    return { user: null, error: 'การเข้าสู่ระบบถูกปิด' };
 }
 
 export function signOut() {
