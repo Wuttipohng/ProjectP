@@ -166,6 +166,12 @@ export default function ToolPage() {
                             onChange={(e) => setConfig({ xLabel: e.target.value })}
                             placeholder="Volume of NaOH (mL)"
                         />
+                        <Input
+                            label="แกน Y"
+                            value={config.yLabel}
+                            onChange={(e) => setConfig({ yLabel: e.target.value })}
+                            placeholder="pH"
+                        />
                     </div>
 
                     <div className="grid sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-4">

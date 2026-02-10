@@ -173,11 +173,11 @@ export default function ResultTable({ result }: ResultTableProps) {
                 <caption className="sr-only">ผลการคำนวณไทเทรต</caption>
                 <thead>
                     <tr>
-                        <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">Volume (mL)</th>
-                        <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">pH</th>
-                        <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">ΔpH</th>
-                        <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">ΔV</th>
-                        <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">ΔpH/ΔV</th>
+                        <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">{config?.xLabel || 'Volume (mL)'}</th>
+                        <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">{config?.yLabel || 'pH'}</th>
+                        <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">{'Δ' + (config?.yLabel || 'pH')}</th>
+                        <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">{'Δ' + (config?.xLabel || 'V')}</th>
+                        <th className="bg-primary-500/20 border border-dark-600 px-3 py-2 text-sm font-semibold text-primary-300">{'Δ' + (config?.yLabel || 'pH') + '/' + 'Δ' + (config?.xLabel || 'V')}</th>
                     </tr>
                 </thead>
 

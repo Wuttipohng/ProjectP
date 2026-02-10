@@ -136,10 +136,11 @@ export default function DataTable() {
                                 #
                             </th>
                             <th className="bg-dark-700 border border-dark-600 px-3 py-2 text-sm font-semibold text-gray-300">
-                                Volume (mL)
+                                {/** Use configured axis labels */}
+                                {config?.xLabel || 'Volume (mL)'}
                             </th>
                             <th className="bg-dark-700 border border-dark-600 px-3 py-2 text-sm font-semibold text-gray-300">
-                                pH
+                                {config?.yLabel || 'pH'}
                             </th>
                             <th className="bg-dark-700 border border-dark-600 px-3 py-2 text-sm font-semibold text-gray-300 w-12">
                                 ลบ
