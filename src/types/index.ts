@@ -85,7 +85,15 @@ export interface Experiment {
 }
 
 // Admin type removed — admin functionality disabled
+// ─── Visit (tracking) ───
+export interface Visit {
+    id: string;
+    user_id: string | null;
+    email: string | null;
+    timestamp: string;
+}
 
+// ─── Auth State ───
 // ─── Auth State ───
 export interface AuthState {
     user: { id: string; email: string } | null;

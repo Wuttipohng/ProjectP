@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { FlaskConical, User, LogOut, Settings, LayoutDashboard, Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { getCurrentUser, recordVisit } from '@/lib/local-db';
 import Button from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +19,12 @@ export default function Navbar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         initialize();
+        try {
+            const cur = getCurrentUser();
+            recordVisit(cur?.id || null, cur?.email || null);
+        } catch (e) {
+            // ignore
+        }
     }, []);
 
     const handleLogout = async () => {

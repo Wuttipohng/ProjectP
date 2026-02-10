@@ -9,7 +9,7 @@ const STORAGE_KEYS = {
     PROFILES: 'app_profiles',
     SETTINGS: 'app_settings',
     EXPERIMENTS: 'app_experiments',
-    // ADMINS removed — admin features disabled
+    VISITS: 'app_visits',
     CURRENT_USER: 'app_current_user',
 } as const;
 
@@ -113,6 +113,21 @@ export function signOut() {
 
 export function getCurrentUser(): { id: string; email: string } | null {
     return getItem<{ id: string; email: string } | null>(STORAGE_KEYS.CURRENT_USER, null);
+}
+
+export function getVisits(): { id: string; user_id: string | null; email: string | null; timestamp: string }[] {
+    return getItem(STORAGE_KEYS.VISITS, [] as any[]);
+}
+
+export function recordVisit(userId: string | null, email: string | null) {
+    const visits = getItem<{ id: string; user_id: string | null; email: string | null; timestamp: string }[]>(STORAGE_KEYS.VISITS, []);
+    const now = new Date().toISOString();
+    visits.push({ id: generateUUID(), user_id: userId || null, email: email || null, timestamp: now });
+    setItem(STORAGE_KEYS.VISITS, visits);
+}
+
+export function clearVisits() {
+    setItem(STORAGE_KEYS.VISITS, []);
 }
 
 // ═══════════════════════════════════
