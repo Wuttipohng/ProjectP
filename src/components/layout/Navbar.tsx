@@ -30,9 +30,7 @@ export default function Navbar() {
         { href: '/profile', label: 'โปรไฟล์', icon: User },
     ];
 
-    if (isAdmin) {
-        navLinks.push({ href: '/admin', label: 'Admin', icon: LayoutDashboard });
-    }
+    // Admin link removed — admin page has been deleted
 
     return (
         <nav className="sticky top-0 z-50 glass border-b border-dark-600">
