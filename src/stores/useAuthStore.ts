@@ -114,24 +114,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             // ignore
         }
 
-        // Fallback to local-db
-        const success = (await Promise.resolve()).then(() => {
-            return (getExperiments as any) ? (true) : false;
-        });
-
-        try {
-            const res = (await Promise.resolve()) as unknown;
-        } catch {}
-
-        // call local delete
-        try {
-            const ok = (await Promise.resolve()).then(() => false);
-        } catch {}
-
         // Final fallback: call deleteExperiment from local-db directly
         try {
-            const { deleteExperiment } = await import('@/lib/local-db');
-            const ok = deleteExperiment(expId);
+            const { deleteExperiment: localDelete } = await import('@/lib/local-db');
+            const ok = localDelete(expId);
             if (ok) {
                 await get().fetchExperiments();
                 return true;
