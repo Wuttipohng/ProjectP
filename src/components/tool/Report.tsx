@@ -81,7 +81,13 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
                         if (o.plugins.annotation && o.plugins.annotation.annotations) {
                             for (const aKey of Object.keys(o.plugins.annotation.annotations)) {
                                 const ann = o.plugins.annotation.annotations[aKey];
-                                if (ann.label) ann.label.color = '#000000';
+                                if (ann.label) {
+                                    ann.label.color = '#000000';
+                                    // make annotation label background transparent for clean export
+                                    ann.label.backgroundColor = 'rgba(255,255,255,0)';
+                                    ann.label.borderColor = '#000000';
+                                    ann.label.borderWidth = 0;
+                                }
                             }
                         }
 
