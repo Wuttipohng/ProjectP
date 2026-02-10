@@ -71,11 +71,18 @@ const PHChart = forwardRef<any, PHChartProps>(
                 },
                 title: {
                     display: true,
-                    text: `pH vs ${expConfig.xLabel} (จำนวนการทดลอง: ${experimentsCount ?? 1})`,
+                    text: [
+                        `กราฟแสดงความสัมพันธ์ระหว่างค่า ${expConfig.yLabel} ของ ${expConfig.expName}`,
+                        `กับค่า ${expConfig.xLabel} ${expConfig.expNo}`,
+                    ],
                     color: '#fff',
                     font: {
                         size: 16,
                         weight: 'bold' as const,
+                    },
+                    padding: {
+                        top: 6,
+                        bottom: 6,
                     },
                 },
                 tooltip: {
