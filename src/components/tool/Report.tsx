@@ -143,6 +143,24 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
         };
 
         // Try multiple sources for chart images
+        // If hidden/chart refs exist, ensure they're updated and rendered before capture
+        const forceUpdateChart = async (ref: React.RefObject<any>) => {
+            try {
+                const r = ref?.current;
+                const chartInstance = r?.chart || r?.instance || null;
+                if (chartInstance && typeof chartInstance.update === 'function') {
+                    chartInstance.update();
+                    // wait one animation frame for Chart.js to complete rendering
+                    await new Promise((res) => requestAnimationFrame(() => res(undefined)));
+                }
+            } catch (e) {
+                // ignore
+            }
+        };
+
+        await forceUpdateChart(internalPhRef);
+        await forceUpdateChart(internalDvRef);
+
         let phDataUrl = getDataUrlFromRef(phChartRef) || getDataUrlFromRef(internalPhRef);
         let dvDataUrl = getDataUrlFromRef(dvChartRef) || getDataUrlFromRef(internalDvRef);
         appendDebug(`phDataUrl found: ${!!phDataUrl}; dvDataUrl found: ${!!dvDataUrl}`);
