@@ -10,19 +10,13 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import { useToolStore } from '@/stores/useToolStore';
-import { useAuthStore } from '@/stores/useAuthStore';
-import { createClient } from '@/lib/supabase/client';
-import toast from 'react-hot-toast';
-import { saveExperiment as localSaveExperiment } from '@/lib/local-db';
 
 interface ResultTableProps {
     result: TitrationResult;
 }
 
 export default function ResultTable({ result }: ResultTableProps) {
-    const { setResult } = useToolStore();
-
-    const { setDataRows, config, chartConfig } = useToolStore();
+    const { setDataRows, config, chartConfig, setResult } = useToolStore();
     const { user } = useAuthStore();
     const [saving, setSaving] = useState(false);
     // Keep editable copies of volume, pH and deltas
@@ -31,8 +25,7 @@ export default function ResultTable({ result }: ResultTableProps) {
     const [deltaPH, setDeltaPH] = useState<number[]>(result.deltaPH.slice());
     const [deltaV, setDeltaV] = useState<number[]>(result.deltaV.slice());
 
-    const { user } = useAuthStore();
-    const { config, chartConfig, setDataRows } = useToolStore();
+    
 
     useEffect(() => {
         setVolumes(result.volume.slice());
