@@ -9,7 +9,7 @@ const STORAGE_KEYS = {
     PROFILES: 'app_profiles',
     SETTINGS: 'app_settings',
     EXPERIMENTS: 'app_experiments',
-    ADMINS: 'app_admins',
+    // ADMINS removed — admin features disabled
     CURRENT_USER: 'app_current_user',
 } as const;
 
@@ -208,31 +208,4 @@ export function deleteExperiment(expId: string): boolean {
 // Admin Functions
 // ═══════════════════════════════════
 
-export function isAdmin(userId: string): boolean {
-    const admins = getItem<{ user_id: string; role: string }[]>(STORAGE_KEYS.ADMINS, []);
-    return admins.some((a) => a.user_id === userId);
-}
-
-export function getAllProfiles(): Profile[] {
-    return getItem<Profile[]>(STORAGE_KEYS.PROFILES, []);
-}
-
-export function getAllExperiments(): Experiment[] {
-    return getItem<Experiment[]>(STORAGE_KEYS.EXPERIMENTS, []);
-}
-
-// ─── Make first user admin (auto) ───
-export function ensureFirstUserIsAdmin() {
-    const users = getItem<StoredUser[]>(STORAGE_KEYS.USERS, []);
-    const admins = getItem<{ user_id: string; role: string; id: string; created_at: string }[]>(STORAGE_KEYS.ADMINS, []);
-
-    if (users.length > 0 && admins.length === 0) {
-        admins.push({
-            id: generateUUID(),
-            user_id: users[0].id,
-            role: 'admin',
-            created_at: new Date().toISOString(),
-        });
-        setItem(STORAGE_KEYS.ADMINS, admins);
-    }
-}
+// (admin functions removed)

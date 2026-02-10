@@ -84,12 +84,7 @@ export interface Experiment {
     updated_at: string;
 }
 
-export interface Admin {
-    id: string;
-    user_id: string;
-    role: 'admin' | 'super_admin';
-    created_at: string;
-}
+// Admin type removed — admin functionality disabled
 
 // ─── Auth State ───
 export interface AuthState {
