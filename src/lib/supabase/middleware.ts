@@ -35,8 +35,8 @@ export async function updateSession(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
-    // Protected routes
-    const protectedRoutes = ['/tool', '/profile', '/admin'];
+    // Protected routes (admin removed so admin page is publicly accessible)
+    const protectedRoutes = ['/tool', '/profile'];
     const authRoutes = ['/login', '/register'];
 
     // ถ้าไม่ได้ login และพยายามเข้า protected route
@@ -53,20 +53,7 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    // Admin route check
-    if (user && pathname.startsWith('/admin')) {
-        const { data: admin } = await supabase
-            .from('admins')
-            .select('id')
-            .eq('user_id', user.id)
-            .single();
-
-        if (!admin) {
-            const url = request.nextUrl.clone();
-            url.pathname = '/tool';
-            return NextResponse.redirect(url);
-        }
-    }
+    // Admin gating removed — `/admin` is now accessible without admin check.
 
     return supabaseResponse;
 }
