@@ -312,7 +312,7 @@ export default function ResultTable({ result }: ResultTableProps) {
                     onClick={() => applyManualOverrides(false)}
                     disabled={!canApply()}
                 >
-                    Apply overrides to Input
+                    นำค่าที่แก้ไขไปยังตารางข้อมูล
                 </button>
 
                 <button
@@ -320,7 +320,7 @@ export default function ResultTable({ result }: ResultTableProps) {
                     onClick={() => applyManualOverrides(true)}
                     disabled={!canApply()}
                 >
-                    Apply manual overrides & Save Experiment
+                    นำค่าไปใช้และบันทึกการทดลอง
                 </button>
             </div>
         </div>
