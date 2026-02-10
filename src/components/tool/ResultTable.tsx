@@ -218,6 +218,57 @@ export default function ResultTable({ result }: ResultTableProps) {
         }
     };
 
+    const [exportingPdf, setExportingPdf] = useState(false);
+
+    const handleExportPDF = async () => {
+        try {
+            setExportingPdf(true);
+
+            // Try visible chart canvases first
+            const phCanvas = document.querySelector('[data-chart="ph"] canvas') as HTMLCanvasElement | null;
+            const dvCanvas = document.querySelector('[data-chart="dv"] canvas') as HTMLCanvasElement | null;
+
+            // If not found, try hidden report canvases
+            const phHidden = document.querySelector('[data-chart-hidden="ph"] canvas') as HTMLCanvasElement | null;
+            const dvHidden = document.querySelector('[data-chart-hidden="dv"] canvas') as HTMLCanvasElement | null;
+
+            const ph = phCanvas || phHidden;
+            const dv = dvCanvas || dvHidden;
+
+            if (!ph || !dv) {
+                toast.error('ไม่พบกราฟบนหน้า — โปรดไปที่แท็บผลลัพธ์เพื่อดูกราฟก่อนส่งออก');
+                return;
+            }
+
+            // Wait a frame to ensure canvas is painted after any recent updates
+            await new Promise((res) => requestAnimationFrame(() => res(undefined)));
+
+            const phDataUrl = ph.toDataURL('image/png', 1.0);
+            const dvDataUrl = dv.toDataURL('image/png', 1.0);
+
+            const { exportPDF } = await import('@/core/pdfGenerator');
+
+            await exportPDF(
+                result,
+                config,
+                chartConfig,
+                {
+                    full_name: useAuthStore.getState().profile?.full_name || config.studentName || '',
+                    university: useAuthStore.getState().profile?.university || '',
+                },
+                phDataUrl,
+                dvDataUrl
+            );
+
+            toast.success('📄 ส่งออก PDF สำเร็จ!');
+        } catch (e) {
+            console.error('Export PDF failed', e);
+            toast.error('เกิดข้อผิดพลาดขณะส่งออก PDF');
+        } finally {
+            setExportingPdf(false);
+        }
+    };
+
     return (
         <div className="bg-dark-800 border border-dark-600 rounded-xl p-6 overflow-x-auto focus-visible:ring-2 focus-visible:ring-primary-500/80" tabIndex={0}>
             <h3 className="text-lg font-semibold text-white mb-4">📊 ตารางผลการคำนวณ</h3>
@@ -374,6 +425,14 @@ export default function ResultTable({ result }: ResultTableProps) {
                     disabled={!canApply()}
                 >
                     นำค่าไปใช้และบันทึกการทดลอง
+                </button>
+
+                <button
+                    className="px-3 py-2 bg-primary-400 hover:bg-primary-500 text-white rounded focus-visible:ring-2 focus-visible:ring-primary-300"
+                    onClick={handleExportPDF}
+                    disabled={exportingPdf}
+                >
+                    {exportingPdf ? 'กำลังส่งออก…' : 'ส่งออก PDF'}
                 </button>
             </div>
         </div>

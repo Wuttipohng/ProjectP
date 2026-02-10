@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FileDown, Download } from 'lucide-react';
+import { FileDown } from 'lucide-react';
 import type { TitrationResult, ExperimentConfig, ChartConfig } from '@/types';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { getCanvasFromRef, downloadChartAsPNG } from '@/lib/exportChart';
@@ -24,7 +24,6 @@ interface ReportProps {
 
 export default function Report({ result, config, chartConfig, phChartRef, dvChartRef }: ReportProps) {
     const { profile } = useAuthStore();
-    const [exporting, setExporting] = useState(false);
 
     const appendDebug = (line: string) => {
         // keep console logs for developer tools, do not render on-screen
@@ -33,136 +32,6 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
 
     const internalPhRef = useRef<any>(null);
     const internalDvRef = useRef<any>(null);
-
-    const handleExportPDF = async () => {
-        const getDataUrlFromRef = (ref: React.RefObject<any>): string | null => {
-            try {
-                const r = ref?.current;
-                if (!r) return null;
-
-                // direct canvas
-                if (r instanceof HTMLCanvasElement) return r.toDataURL('image/png', 1.0);
-
-                // chart.js wrappers: try to temporarily force black text colors for export
-                const chartInstance = r.chart || (r?.instance || null);
-                if (chartInstance && chartInstance.canvas instanceof HTMLCanvasElement) {
-                    // backup options and data
-                    const originalOptions = JSON.parse(JSON.stringify(chartInstance.options || {}));
-                    const originalData = JSON.parse(JSON.stringify(chartInstance.data || {}));
-                    try {
-                        // set black for title, scales and ticks
-                        if (!chartInstance.options) chartInstance.options = {};
-                        const o: any = chartInstance.options;
-                        if (!o.plugins) o.plugins = {};
-                        if (!o.scales) o.scales = {};
-
-                        // title
-                        if (!o.plugins.title) o.plugins.title = {};
-                        o.plugins.title.color = '#000000';
-
-                        // legend labels
-                        if (!o.plugins.legend) o.plugins.legend = {};
-                        if (!o.plugins.legend.labels) o.plugins.legend.labels = {};
-                        o.plugins.legend.labels.color = '#000000';
-
-                        // prefer a Thai-capable font family during export
-                        if (!o.font) o.font = {};
-                        o.font.family = "Sarabun, 'Noto Sans Thai', 'Noto Sans', Arial, sans-serif";
-
-                        // scales
-                        for (const key of Object.keys(o.scales)) {
-                            if (!o.scales[key].ticks) o.scales[key].ticks = {};
-                            if (!o.scales[key].title) o.scales[key].title = {};
-                            o.scales[key].ticks.color = '#000000';
-                            o.scales[key].title.color = '#000000';
-                        }
-
-                        // annotation labels (if any)
-                        if (o.plugins.annotation && o.plugins.annotation.annotations) {
-                            for (const aKey of Object.keys(o.plugins.annotation.annotations)) {
-                                const ann = o.plugins.annotation.annotations[aKey];
-                                if (ann.label) {
-                                    ann.label.color = '#000000';
-                                    // make annotation label background transparent for clean export
-                                    ann.label.backgroundColor = 'rgba(255,255,255,0)';
-                                    ann.label.borderColor = '#000000';
-                                    ann.label.borderWidth = 0;
-                                }
-                            }
-                        }
-
-                        // force dataset drawing colors to black for exported image
-                        try {
-                            if (Array.isArray(chartInstance.data?.datasets)) {
-                                for (const ds of chartInstance.data.datasets) {
-                                    if (!ds || typeof ds !== 'object') continue;
-                                    ds.borderColor = '#000000';
-                                    ds.backgroundColor = '#000000';
-                                    ds.pointBackgroundColor = '#000000';
-                                    ds.pointBorderColor = '#000000';
-                                }
-                            }
-                        } catch (e) {
-                            console.warn('Failed to override dataset colors for export', e);
-                        }
-
-                        // apply and render immediately
-                        if (typeof chartInstance.update === 'function') chartInstance.update();
-
-                        // try Chart.js helper
-                        if (typeof r.toBase64Image === 'function') return r.toBase64Image();
-                        return chartInstance.canvas.toDataURL('image/png', 1.0);
-                    } finally {
-                        // restore original options and data
-                        try {
-                            chartInstance.options = originalOptions;
-                            // restore datasets/data
-                            if (originalData) chartInstance.data = originalData;
-                            if (typeof chartInstance.update === 'function') chartInstance.update();
-                        } catch (e) {
-                            console.warn('Failed to restore chart state after export', e);
-                        }
-                    }
-                }
-
-                if (r.canvas && r.canvas instanceof HTMLCanvasElement) return r.canvas.toDataURL('image/png', 1.0);
-
-                // Chart.js instance helper
-                if (typeof r.toBase64Image === 'function') return r.toBase64Image();
-
-                // container node
-                const container = r.container || r.node || r.el || r.canvas?.parentNode;
-                const canvas = container?.querySelector?.('canvas') as HTMLCanvasElement | null;
-                if (canvas) return canvas.toDataURL('image/png', 1.0);
-
-                return null;
-            } catch (e) {
-                console.error('getDataUrlFromRef error', e);
-                return null;
-            }
-        };
-
-        // Try multiple sources for chart images
-        // If hidden/chart refs exist, ensure they're updated and rendered before capture
-        const forceUpdateChart = async (ref: React.RefObject<any>) => {
-            try {
-                const r = ref?.current;
-                const chartInstance = r?.chart || r?.instance || null;
-                if (chartInstance && typeof chartInstance.update === 'function') {
-                    chartInstance.update();
-                    // wait one animation frame for Chart.js to complete rendering
-                    await new Promise((res) => requestAnimationFrame(() => res(undefined)));
-                }
-            } catch (e) {
-                // ignore
-            }
-        };
-
-        await forceUpdateChart(internalPhRef);
-        await forceUpdateChart(internalDvRef);
-
-        let phDataUrl = getDataUrlFromRef(phChartRef) || getDataUrlFromRef(internalPhRef);
-        let dvDataUrl = getDataUrlFromRef(dvChartRef) || getDataUrlFromRef(internalDvRef);
         appendDebug(`phDataUrl found: ${!!phDataUrl}; dvDataUrl found: ${!!dvDataUrl}`);
 
         // DOM fallbacks (visible charts and hidden fallback charts)
@@ -230,27 +99,10 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">📍 สรุปผลการทดลอง</h3>
 
-                <div className="flex items-center gap-2">
-                    {/* Debug helper removed in production */}
-
-                    <Button
-                        onClick={handleExportPDF}
-                        className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-primary-500/80"
-                        aria-label="ส่งออก PDF"
-                        disabled={exporting}
-                    >
-                        {exporting ? (
-                            <svg className="-ml-1 mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                <style>{`@media (prefers-reduced-motion: reduce) {.animate-spin {animation: none !important;}}`}</style>
-                            </svg>
-                        ) : (
-                            <Download className="h-4 w-4" aria-hidden="true" />
-                        )}
-                        {exporting ? 'กำลังส่งออก…' : 'ส่งออก PDF'}
-                    </Button>
-                </div>
+                    <div className="flex items-center gap-2">
+                        {/* Export moved to ResultTable */}
+                        <span className="text-sm text-gray-400">PDF export is available below the calculation table</span>
+                    </div>
             </div>
 
             {/* debug output removed from UI; logs still go to console */}
