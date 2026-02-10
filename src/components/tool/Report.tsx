@@ -4,7 +4,12 @@ import React from 'react';
 import { FileDown, Download } from 'lucide-react';
 import type { TitrationResult, ExperimentConfig, ChartConfig } from '@/types';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { downloadChartAsPNG } from '@/lib/exportChart';
+import { getCanvasFromRef, downloadChartAsPNG } from '@/lib/exportChart';
+import dynamic from 'next/dynamic';
+import { useRef } from 'react';
+
+const PHChart = dynamic(() => import('@/components/charts/PHChart'), { ssr: false });
+const DerivativeChart = dynamic(() => import('@/components/charts/DerivativeChart'), { ssr: false });
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
@@ -20,13 +25,29 @@ interface ReportProps {
 export default function Report({ result, config, chartConfig, phChartRef, dvChartRef }: ReportProps) {
     const { profile } = useAuthStore();
     const [exporting, setExporting] = useState(false);
+    const [debugText, setDebugText] = useState('');
+
+    const internalPhRef = useRef<any>(null);
+    const internalDvRef = useRef<any>(null);
 
     const handleExportPDF = async () => {
-        const phCanvas = phChartRef.current?.canvas;
-        const dvCanvas = dvChartRef.current?.canvas;
+        // Prefer canvas from refs passed from page, otherwise use internal hidden charts
+        let phCanvas = getCanvasFromRef(phChartRef);
+        let dvCanvas = getCanvasFromRef(dvChartRef);
+        if (!phCanvas) phCanvas = getCanvasFromRef(internalPhRef);
+        if (!dvCanvas) dvCanvas = getCanvasFromRef(internalDvRef);
+
+        // Final fallback: query the DOM for canvases inside chart containers
+        if (!phCanvas) {
+            phCanvas = document.querySelector('[data-chart="ph"] canvas') as HTMLCanvasElement | null;
+        }
+        if (!dvCanvas) {
+            dvCanvas = document.querySelector('[data-chart="dv"] canvas') as HTMLCanvasElement | null;
+        }
 
         if (!phCanvas || !dvCanvas) {
-            toast.error('ไม่สามารถสร้าง PDF ได้');
+            console.error('handleExportPDF: canvas not found', { phCanvas, dvCanvas, phRef: phChartRef?.current, dvRef: dvChartRef?.current });
+            toast.error('ไม่สามารถสร้าง PDF ได้ — ไม่พบ canvas ของกราฟ');
             return;
         }
 
@@ -47,7 +68,7 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
             toast.success('📄 Export PDF สำเร็จ!');
         } catch (error) {
             console.error('PDF export error:', error);
-            toast.error('เกิดข้อผิดพลาดในการสร้าง PDF');
+            toast.error('เกิดข้อผิดพลาดในการสร้าง PDF — ดูคอนโซลสำหรับรายละเอียด');
         } finally {
             setExporting(false);
         }
@@ -59,31 +80,37 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">📍 สรุปผลการทดลอง</h3>
 
                 <div className="flex items-center gap-2">
-                    <Button
+                    {/* Debug helper (temporary) */}
+                    <button
+                        type="button"
+                        className="px-2 py-1 bg-yellow-500 text-black rounded text-sm"
                         onClick={() => {
-                            const ok = downloadChartAsPNG(phChartRef, `${config.expName || 'ph-chart'}.png`);
-                            if (ok) toast.success('ดาวน์โหลดกราฟ pH สำเร็จ');
-                            else toast.error('ไม่สามารถดาวน์โหลดกราฟ pH ได้');
-                        }}
-                        className="flex items-center gap-2"
-                        aria-label="Download pH PNG"
-                    >
-                        <FileDown className="h-4 w-4" aria-hidden="true" />
-                        pH PNG
-                    </Button>
+                            try {
+                                // expose refs for manual inspection
+                                (window as any)._phRef = phChartRef.current;
+                                (window as any)._dvRef = dvChartRef.current;
+                                console.log('exposed refs to window._phRef and window._dvRef', phChartRef.current, dvChartRef.current);
 
-                    <Button
-                        onClick={() => {
-                            const ok = downloadChartAsPNG(dvChartRef, `${config.expName || 'dv-chart'}.png`);
-                            if (ok) toast.success('ดาวน์โหลดกราฟ ΔpH/ΔV สำเร็จ');
-                            else toast.error('ไม่สามารถดาวน์โหลดกราฟ ΔpH/ΔV ได้');
+                                const phCanvas = getCanvasFromRef(phChartRef);
+                                const dvCanvas = getCanvasFromRef(dvChartRef);
+                                console.log('getCanvasFromRef ->', { phCanvas, dvCanvas });
+
+                                if (phCanvas) {
+                                    const ok = downloadChartAsPNG(phChartRef, `${config.expName || 'ph-chart'}-debug.png`);
+                                    console.log('downloadChartAsPNG ph ->', ok);
+                                } else console.warn('phCanvas not found');
+
+                                if (dvCanvas) {
+                                    const ok2 = downloadChartAsPNG(dvChartRef, `${config.expName || 'dv-chart'}-debug.png`);
+                                    console.log('downloadChartAsPNG dv ->', ok2);
+                                } else console.warn('dvCanvas not found');
+                            } catch (e) {
+                                console.error('Debug button error', e);
+                            }
                         }}
-                        className="flex items-center gap-2"
-                        aria-label="Download ΔpH/ΔV PNG"
                     >
-                        <FileDown className="h-4 w-4" aria-hidden="true" />
-                        ΔpH/ΔV PNG
-                    </Button>
+                        Debug
+                    </button>
 
                     <Button
                         onClick={handleExportPDF}
@@ -104,6 +131,10 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
                     </Button>
                 </div>
             </div>
+
+            {debugText && (
+                <pre className="mt-4 p-3 bg-black text-white rounded text-sm whitespace-pre-wrap overflow-auto">{debugText}</pre>
+            )}
 
             <div className="grid md:grid-cols-2 gap-6">
                 {/* End Point Info */}
@@ -141,6 +172,12 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Hidden chart instances for export (mounted off-screen) */}
+            <div style={{ position: 'absolute', left: -9999, top: -9999, width: 800, height: 600, overflow: 'hidden' }} aria-hidden>
+                <PHChart ref={internalPhRef} result={result} chartConfig={chartConfig} expConfig={config} />
+                <DerivativeChart ref={internalDvRef} result={result} chartConfig={chartConfig} expConfig={config} />
             </div>
 
             {/* Experiment Info */}
