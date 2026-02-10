@@ -25,35 +25,159 @@ interface ReportProps {
 export default function Report({ result, config, chartConfig, phChartRef, dvChartRef }: ReportProps) {
     const { profile } = useAuthStore();
     const [exporting, setExporting] = useState(false);
-    const [debugText, setDebugText] = useState('');
+
+    const appendDebug = (line: string) => {
+        // keep console logs for developer tools, do not render on-screen
+        console.log('[Report debug]', line);
+    };
 
     const internalPhRef = useRef<any>(null);
     const internalDvRef = useRef<any>(null);
 
     const handleExportPDF = async () => {
-        // Prefer canvas from refs passed from page, otherwise use internal hidden charts
-        let phCanvas = getCanvasFromRef(phChartRef);
-        let dvCanvas = getCanvasFromRef(dvChartRef);
-        if (!phCanvas) phCanvas = getCanvasFromRef(internalPhRef);
-        if (!dvCanvas) dvCanvas = getCanvasFromRef(internalDvRef);
+        const getDataUrlFromRef = (ref: React.RefObject<any>): string | null => {
+            try {
+                const r = ref?.current;
+                if (!r) return null;
 
-        // Final fallback: query the DOM for canvases inside chart containers
-        if (!phCanvas) {
-            phCanvas = document.querySelector('[data-chart="ph"] canvas') as HTMLCanvasElement | null;
-        }
-        if (!dvCanvas) {
-            dvCanvas = document.querySelector('[data-chart="dv"] canvas') as HTMLCanvasElement | null;
+                // direct canvas
+                if (r instanceof HTMLCanvasElement) return r.toDataURL('image/png', 1.0);
+
+                // chart.js wrappers: try to temporarily force black text colors for export
+                const chartInstance = r.chart || (r?.instance || null);
+                if (chartInstance && chartInstance.canvas instanceof HTMLCanvasElement) {
+                    // backup options and data
+                    const originalOptions = JSON.parse(JSON.stringify(chartInstance.options || {}));
+                    const originalData = JSON.parse(JSON.stringify(chartInstance.data || {}));
+                    try {
+                        // set black for title, scales and ticks
+                        if (!chartInstance.options) chartInstance.options = {};
+                        const o: any = chartInstance.options;
+                        if (!o.plugins) o.plugins = {};
+                        if (!o.scales) o.scales = {};
+
+                        // title
+                        if (!o.plugins.title) o.plugins.title = {};
+                        o.plugins.title.color = '#000000';
+
+                        // legend labels
+                        if (!o.plugins.legend) o.plugins.legend = {};
+                        if (!o.plugins.legend.labels) o.plugins.legend.labels = {};
+                        o.plugins.legend.labels.color = '#000000';
+
+                        // prefer a Thai-capable font family during export
+                        if (!o.font) o.font = {};
+                        o.font.family = "Sarabun, 'Noto Sans Thai', 'Noto Sans', Arial, sans-serif";
+
+                        // scales
+                        for (const key of Object.keys(o.scales)) {
+                            if (!o.scales[key].ticks) o.scales[key].ticks = {};
+                            if (!o.scales[key].title) o.scales[key].title = {};
+                            o.scales[key].ticks.color = '#000000';
+                            o.scales[key].title.color = '#000000';
+                        }
+
+                        // annotation labels (if any)
+                        if (o.plugins.annotation && o.plugins.annotation.annotations) {
+                            for (const aKey of Object.keys(o.plugins.annotation.annotations)) {
+                                const ann = o.plugins.annotation.annotations[aKey];
+                                if (ann.label) ann.label.color = '#000000';
+                            }
+                        }
+
+                        // force dataset drawing colors to black for exported image
+                        try {
+                            if (Array.isArray(chartInstance.data?.datasets)) {
+                                for (const ds of chartInstance.data.datasets) {
+                                    if (!ds || typeof ds !== 'object') continue;
+                                    ds.borderColor = '#000000';
+                                    ds.backgroundColor = '#000000';
+                                    ds.pointBackgroundColor = '#000000';
+                                    ds.pointBorderColor = '#000000';
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Failed to override dataset colors for export', e);
+                        }
+
+                        // apply and render immediately
+                        if (typeof chartInstance.update === 'function') chartInstance.update();
+
+                        // try Chart.js helper
+                        if (typeof r.toBase64Image === 'function') return r.toBase64Image();
+                        return chartInstance.canvas.toDataURL('image/png', 1.0);
+                    } finally {
+                        // restore original options and data
+                        try {
+                            chartInstance.options = originalOptions;
+                            // restore datasets/data
+                            if (originalData) chartInstance.data = originalData;
+                            if (typeof chartInstance.update === 'function') chartInstance.update();
+                        } catch (e) {
+                            console.warn('Failed to restore chart state after export', e);
+                        }
+                    }
+                }
+
+                if (r.canvas && r.canvas instanceof HTMLCanvasElement) return r.canvas.toDataURL('image/png', 1.0);
+
+                // Chart.js instance helper
+                if (typeof r.toBase64Image === 'function') return r.toBase64Image();
+
+                // container node
+                const container = r.container || r.node || r.el || r.canvas?.parentNode;
+                const canvas = container?.querySelector?.('canvas') as HTMLCanvasElement | null;
+                if (canvas) return canvas.toDataURL('image/png', 1.0);
+
+                return null;
+            } catch (e) {
+                console.error('getDataUrlFromRef error', e);
+                return null;
+            }
+        };
+
+        // Try multiple sources for chart images
+        let phDataUrl = getDataUrlFromRef(phChartRef) || getDataUrlFromRef(internalPhRef);
+        let dvDataUrl = getDataUrlFromRef(dvChartRef) || getDataUrlFromRef(internalDvRef);
+        appendDebug(`phDataUrl found: ${!!phDataUrl}; dvDataUrl found: ${!!dvDataUrl}`);
+
+        // DOM fallbacks (visible charts and hidden fallback charts)
+        try {
+            if (!phDataUrl) {
+                const c = document.querySelector('[data-chart="ph"] canvas') as HTMLCanvasElement | null;
+                if (c) phDataUrl = c.toDataURL('image/png', 1.0);
+            }
+            if (!dvDataUrl) {
+                const c2 = document.querySelector('[data-chart="dv"] canvas') as HTMLCanvasElement | null;
+                if (c2) dvDataUrl = c2.toDataURL('image/png', 1.0);
+            }
+
+            // check hidden copies rendered specifically for export
+            if (!phDataUrl) {
+                const hc = document.querySelector('[data-chart-hidden="ph"] canvas') as HTMLCanvasElement | null;
+                if (hc) phDataUrl = hc.toDataURL('image/png', 1.0);
+            }
+            if (!dvDataUrl) {
+                const hc2 = document.querySelector('[data-chart-hidden="dv"] canvas') as HTMLCanvasElement | null;
+                if (hc2) dvDataUrl = hc2.toDataURL('image/png', 1.0);
+            }
+        } catch (e) {
+            console.error('DOM fallback error', e);
         }
 
-        if (!phCanvas || !dvCanvas) {
-            console.error('handleExportPDF: canvas not found', { phCanvas, dvCanvas, phRef: phChartRef?.current, dvRef: dvChartRef?.current });
-            toast.error('ไม่สามารถสร้าง PDF ได้ — ไม่พบ canvas ของกราฟ');
+        if (!phDataUrl || !dvDataUrl) {
+            const details = { phDataUrl: !!phDataUrl, dvDataUrl: !!dvDataUrl, phRef: phChartRef?.current, dvRef: dvChartRef?.current };
+            console.error('handleExportPDF: image data not found', details);
+            appendDebug(`image data missing: ${JSON.stringify(details)}`);
+            toast.error('ไม่สามารถสร้าง PDF ได้ — ไม่พบภาพกราฟ');
             return;
         }
 
         try {
             setExporting(true);
+            appendDebug('Importing PDF generator...');
             const { exportPDF } = await import('@/core/pdfGenerator');
+            appendDebug('Calling exportPDF()');
             await exportPDF(
                 result,
                 config,
@@ -62,12 +186,15 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
                     full_name: profile?.full_name || config.studentName || '',
                     university: profile?.university || '',
                 },
-                phCanvas,
-                dvCanvas
+                phDataUrl,
+                dvDataUrl
             );
-            toast.success('📄 Export PDF สำเร็จ!');
+            appendDebug('exportPDF() completed');
+            toast.success('📄 ส่งออก PDF สำเร็จ!');
         } catch (error) {
             console.error('PDF export error:', error);
+            appendDebug(`export error: ${error instanceof Error ? error.message : String(error)}`);
+            if ((error as any)?.stack) appendDebug((error as any).stack);
             toast.error('เกิดข้อผิดพลาดในการสร้าง PDF — ดูคอนโซลสำหรับรายละเอียด');
         } finally {
             setExporting(false);
@@ -80,42 +207,12 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">📍 สรุปผลการทดลอง</h3>
 
                 <div className="flex items-center gap-2">
-                    {/* Debug helper (temporary) */}
-                    <button
-                        type="button"
-                        className="px-2 py-1 bg-yellow-500 text-black rounded text-sm"
-                        onClick={() => {
-                            try {
-                                // expose refs for manual inspection
-                                (window as any)._phRef = phChartRef.current;
-                                (window as any)._dvRef = dvChartRef.current;
-                                console.log('exposed refs to window._phRef and window._dvRef', phChartRef.current, dvChartRef.current);
-
-                                const phCanvas = getCanvasFromRef(phChartRef);
-                                const dvCanvas = getCanvasFromRef(dvChartRef);
-                                console.log('getCanvasFromRef ->', { phCanvas, dvCanvas });
-
-                                if (phCanvas) {
-                                    const ok = downloadChartAsPNG(phChartRef, `${config.expName || 'ph-chart'}-debug.png`);
-                                    console.log('downloadChartAsPNG ph ->', ok);
-                                } else console.warn('phCanvas not found');
-
-                                if (dvCanvas) {
-                                    const ok2 = downloadChartAsPNG(dvChartRef, `${config.expName || 'dv-chart'}-debug.png`);
-                                    console.log('downloadChartAsPNG dv ->', ok2);
-                                } else console.warn('dvCanvas not found');
-                            } catch (e) {
-                                console.error('Debug button error', e);
-                            }
-                        }}
-                    >
-                        Debug
-                    </button>
+                    {/* Debug helper removed in production */}
 
                     <Button
                         onClick={handleExportPDF}
                         className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-primary-500/80"
-                        aria-label="Export PDF"
+                        aria-label="ส่งออก PDF"
                         disabled={exporting}
                     >
                         {exporting ? (
@@ -127,14 +224,12 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
                         ) : (
                             <Download className="h-4 w-4" aria-hidden="true" />
                         )}
-                        {exporting ? 'กำลังส่งออก…' : 'Export PDF'}
+                        {exporting ? 'กำลังส่งออก…' : 'ส่งออก PDF'}
                     </Button>
                 </div>
             </div>
 
-            {debugText && (
-                <pre className="mt-4 p-3 bg-black text-white rounded text-sm whitespace-pre-wrap overflow-auto">{debugText}</pre>
-            )}
+            {/* debug output removed from UI; logs still go to console */}
 
             <div className="grid md:grid-cols-2 gap-6">
                 {/* End Point Info */}
@@ -175,9 +270,13 @@ export default function Report({ result, config, chartConfig, phChartRef, dvChar
             </div>
 
             {/* Hidden chart instances for export (mounted off-screen) */}
-            <div style={{ position: 'absolute', left: -9999, top: -9999, width: 800, height: 600, overflow: 'hidden' }} aria-hidden>
-                <PHChart ref={internalPhRef} result={result} chartConfig={chartConfig} expConfig={config} />
-                <DerivativeChart ref={internalDvRef} result={result} chartConfig={chartConfig} expConfig={config} />
+            <div id="report-hidden" style={{ position: 'absolute', left: -9999, top: -9999, width: 800, height: 600, overflow: 'hidden' }} aria-hidden>
+                <div data-chart-hidden="ph">
+                    <PHChart ref={internalPhRef} result={result} chartConfig={chartConfig} expConfig={config} />
+                </div>
+                <div data-chart-hidden="dv">
+                    <DerivativeChart ref={internalDvRef} result={result} chartConfig={chartConfig} expConfig={config} />
+                </div>
             </div>
 
             {/* Experiment Info */}

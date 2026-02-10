@@ -15,6 +15,7 @@ export default function Navbar() {
 
     const { user, profile, isAdmin, logout, initialize } = useAuthStore();
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         initialize();
     }, []);

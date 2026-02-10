@@ -9,7 +9,7 @@ import type { TitrationResult, ExperimentConfig, ChartConfig } from '@/types';
 
 // ─── Colors ───
 const PURPLE: [number, number, number] = [108, 99, 255];
-const DARK_TEXT: [number, number, number] = [33, 33, 33];
+const DARK_TEXT: [number, number, number] = [0, 0, 0]; // use pure black for exported PDF text
 const GRAY_TEXT: [number, number, number] = [120, 120, 120];
 const YELLOW_BG: [number, number, number] = [255, 249, 196];
 const ZEBRA_GRAY: [number, number, number] = [245, 245, 245];
@@ -81,10 +81,39 @@ export async function exportPDF(
     config: ExperimentConfig,
     chartConfig: ChartConfig,
     profile: { full_name: string; university: string },
-    phChartCanvas: HTMLCanvasElement,
-    dvChartCanvas: HTMLCanvasElement
+    phChart: HTMLCanvasElement | string,
+    dvChart: HTMLCanvasElement | string
 ): Promise<void> {
     const pdf = new jsPDF('p', 'mm', 'a4');
+
+    // Try to fetch and embed a Thai-capable font from the public `/fonts` folder.
+    // Place `NotoSansThai-Regular.ttf` in `public/fonts/` for this to work.
+    let thaiFontEmbedded = false;
+    async function embedThaiFont(): Promise<boolean> {
+        try {
+            const resp = await fetch('/fonts/NotoSansThai-Regular.ttf');
+            if (!resp.ok) return false;
+            const buf = await resp.arrayBuffer();
+            // convert to base64
+            const bytes = new Uint8Array(buf);
+            let binary = '';
+            const chunk = 0x8000;
+            for (let i = 0; i < bytes.length; i += chunk) {
+                binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)));
+            }
+            const base64 = btoa(binary);
+            const vfsName = 'NotoSansThai-Regular.ttf';
+            (pdf as any).addFileToVFS(vfsName, base64);
+            (pdf as any).addFont(vfsName, 'NotoSansThai', 'normal');
+            return true;
+        } catch (e) {
+            console.warn('Could not embed Thai font for PDF export', e);
+            return false;
+        }
+    }
+
+    thaiFontEmbedded = await embedThaiFont();
+    const bodyFont = thaiFontEmbedded ? 'NotoSansThai' : 'helvetica';
 
     // ═══════════════════════════════
     // PAGE 1
@@ -105,32 +134,66 @@ export async function exportPDF(
 
     pdf.setTextColor(...DARK_TEXT);
     pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
+    // use embedded Thai-capable font for body text when available
+    pdf.setFont(bodyFont, 'normal');
 
     const infoX = MARGIN + 8;
     const infoValX = MARGIN + 45;
     let infoY = y + 16;
 
+    const safe = (s: any) => {
+        if (s === null || s === undefined) return '-';
+        try {
+            // Normalize to NFKC to collapse compatibility variants
+            let str = String(s).normalize('NFKC');
+            // Remove common Unicode control/invisible characters (Cc, C1 controls and common zero-widths)
+            // Note: Unicode property escapes may not be available when targeting older JS versions,
+            // so use explicit ranges for compatibility.
+            str = str.replace(/[\u0000-\u001F\u007F-\u009F\u200B\u200C\u200D\uFEFF]/g, '');
+            // Trim and collapse whitespace
+            str = str.replace(/\s+/g, ' ').trim();
+            return str || '-';
+        } catch (e) {
+            // Fallback conservative cleaning for older runtimes
+            const str = String(s).replace(/[\u0000-\u001F\u007F-\u009F]/g, '').replace(/\s+/g, ' ').trim();
+            return str || '-';
+        }
+    };
+
+    // Include time (HH:MM) along with date for clearer timestamp in the PDF
+    const formattedDate = new Date().toLocaleString('th-TH-u-nu-latn', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
     const info = [
-        ['Experiment', `${config.expName} ${config.expNo}`],
-        ['Experimenter', config.studentName || '-'],
-        ['University', profile.university || '-'],
-        [
-            'Date',
-            new Date().toLocaleDateString('th-TH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-            }),
-        ],
+        ['Experiment', `${safe(config.expName)} ${safe(config.expNo)}`],
+        // Prefer config.studentName, fall back to profile.full_name when available
+        ['Experimenter', safe(config.studentName) !== '-' ? safe(config.studentName) : safe(profile.full_name) || '-'],
+        ['University', safe(profile.university) || '-'],
+        ['Date', safe(formattedDate)],
     ];
 
     for (const [label, value] of info) {
+        let v = safe(value);
+        // ensure Date always prints; fallback to formattedDate if sanitizer returned '-'
+        if (label === 'Date' && (v === '-' || !v)) {
+            v = formattedDate;
+        }
+        // label: use helvetica bold for consistent label weight
         pdf.setFont('helvetica', 'bold');
         pdf.text(`${label}:`, infoX, infoY);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(value, infoValX, infoY);
-        infoY += 6;
+        // value: use body font (Thai-capable when embedded)
+        pdf.setFont(bodyFont, 'normal');
+        // allow wrapping for long values
+        const maxW = CONTENT_WIDTH - (infoValX - MARGIN) - 8;
+        pdf.text(v, infoValX, infoY, { maxWidth: maxW });
+        // estimate line height for wrapped text
+        const lines = pdf.splitTextToSize(v, maxW);
+        infoY += Math.max(6, lines.length * 5 + 2);
     }
 
     y += 48;
@@ -147,15 +210,8 @@ export async function exportPDF(
     drawRoundedBox(pdf, MARGIN, y, CONTENT_WIDTH, graphHeight, { shadow: true });
 
     // ใส่กราฟ
-    const phImage = phChartCanvas.toDataURL('image/png', 1.0);
-    pdf.addImage(
-        phImage,
-        'PNG',
-        MARGIN + 2,
-        y + 2,
-        CONTENT_WIDTH - 4,
-        graphHeight - 4
-    );
+    const phImage = typeof phChart === 'string' ? phChart : phChart.toDataURL('image/png', 1.0);
+    pdf.addImage(phImage, 'PNG', MARGIN + 2, y + 2, CONTENT_WIDTH - 4, graphHeight - 4);
     y += graphHeight + 6;
 
     // ── กราฟ 2: ΔpH/ΔV vs Volume ──
@@ -167,15 +223,8 @@ export async function exportPDF(
 
     drawRoundedBox(pdf, MARGIN, y, CONTENT_WIDTH, graphHeight, { shadow: true });
 
-    const dvImage = dvChartCanvas.toDataURL('image/png', 1.0);
-    pdf.addImage(
-        dvImage,
-        'PNG',
-        MARGIN + 2,
-        y + 2,
-        CONTENT_WIDTH - 4,
-        graphHeight - 4
-    );
+    const dvImage = typeof dvChart === 'string' ? dvChart : dvChart.toDataURL('image/png', 1.0);
+    pdf.addImage(dvImage, 'PNG', MARGIN + 2, y + 2, CONTENT_WIDTH - 4, graphHeight - 4);
 
     drawFooter(pdf);
 
@@ -227,11 +276,13 @@ export async function exportPDF(
             fontStyle: 'bold',
             halign: 'center',
             fontSize: 10,
+            font: bodyFont,
         },
         bodyStyles: {
             halign: 'center',
             fontSize: 9,
             textColor: DARK_TEXT,
+            font: bodyFont,
         },
         alternateRowStyles: {
             fillColor: ZEBRA_GRAY,
@@ -250,56 +301,7 @@ export async function exportPDF(
 
     y = (pdf as any).lastAutoTable.finalY + 8;
 
-    // ── สรุปผล (กรอบมุมมน) ──
-    const summaryHeight = 55;
-    drawRoundedBox(pdf, MARGIN, y, CONTENT_WIDTH, summaryHeight, {
-        fill: true,
-        shadow: true,
-    });
-
-    pdf.setTextColor(...PURPLE);
-    pdf.setFontSize(12);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Summary', MARGIN + 5, y + 8);
-
-    pdf.setTextColor(...DARK_TEXT);
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-
-    const sumX = MARGIN + 8;
-    let sumY = y + 16;
-
-    const summaryLines = [
-        `End Point (pH Graph):  Volume = ${result.eqVol.toFixed(2)} mL,  pH = ${result.eqPH.toFixed(2)}`,
-        `End Point (dpH/dV Graph):  Volume = ${result.eqVol.toFixed(2)} mL,  dpH/dV = ${result.eqDPHdV.toFixed(2)}`,
-        '',
-        `Type: ${result.expType}`,
-        `Data Points: ${result.volume.length}    Volume Range: ${result.volume[0].toFixed(2)} - ${result.volume[result.volume.length - 1].toFixed(2)} mL`,
-        `pH Range: ${Math.min(...result.pH).toFixed(2)} - ${Math.max(...result.pH).toFixed(2)}`,
-    ];
-
-    for (const line of summaryLines) {
-        if (line.startsWith('Type')) {
-            pdf.setFont('helvetica', 'bold');
-        } else {
-            pdf.setFont('helvetica', 'normal');
-        }
-        pdf.text(line, sumX, sumY);
-        sumY += 5;
-    }
-
-    y += summaryHeight + 15;
-
-    // ── ลงชื่อ ──
-    pdf.setTextColor(...DARK_TEXT);
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-
-    const signX = PAGE_WIDTH - MARGIN - 60;
-    pdf.text('Signature ________________________', signX, y);
-    y += 6;
-    pdf.text(`(${config.studentName || '________________'})`, signX + 15, y);
-
+    // Footer and finish (summary removed per user request)
     drawFooter(pdf);
 
     // ═══ Save ═══
